@@ -22,3 +22,11 @@ class Mark {
   }
   
 }
+
+function $( query ) {
+  if ( query.charAt(0) === "#" ) {
+    return document.querySelector( query );
+  } else {
+    return document.querySelectorAll( query );
+  }
+}

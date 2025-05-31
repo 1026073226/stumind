@@ -4,13 +4,24 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>stumind</title>
+		<link href="css/index.css" rel="stylesheet" />
 	</head>
 	<body>
 		<div id="app">
-            <chart-component></chart-component>
+		  <div id="bodyline">
+		    <div id="pusher" :style="styleComputer(pages.pusher)">
+		      <button @click="createMark" id="mark-pusher">添加成绩</button>
+		    </div>
+		    <div id="datas" :style="styleComputer(pages.datas)">
+          <div id="broken-line" class="chart"></div>
         </div>
+      </div>
+      <div id="bottomline"></div>
+      <div id="conf"></div>
+    </div>
 	</body>
     <script src="js/echarts.js"></script>
     <script src="js/vue.js"></script>
+    <script src="js/classes.js"></script>
     <script src="js/index.js"></script>
 </html>
