@@ -10,7 +10,20 @@
 		<div id="app">
 		  <div id="bodyline">
 		    <div id="pusher" :style="styleComputer(pages.pusher)">
-		      <button @click="createMark" id="mark-pusher">添加成绩</button>
+		      <div id="check" class="block">
+		        <div id="check-board">
+              <div v-for="(value, key) in check" class="check-board-box" :style="'background-color:' + (value ? 'var(--bg2)' : 'var(--bg2);opacity: 0.3')"></div>
+		        </div>
+				    <button id="check-check" class="fully" @touchstart="checkin" @touchend="stopCheckin" :style="'box-shadow:0 0 ' + (5 + temper.time) + 'px var(--bg1);filter:brightness(' + (1 + temper.time / 10) + ') blur(' + temper.time / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'" :disabled="user.checked.includes(today)">签到</button>
+		      </div>
+		      <div id="mark" class="block">
+		        <div id="mark-msg">
+		          已记录
+		          <i><b>{{marksLength}}</b></i>
+		          条成绩
+		        </div>
+		        <button @click="createMark" id="mark-pusher" class="fully">添加成绩</button>
+		      </div>
 		    </div>
 		    <div id="datas" :style="styleComputer(pages.datas)">
           <div id="broken-line" class="chart"></div>

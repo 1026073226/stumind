@@ -1,6 +1,8 @@
 const app = new Vue( {
   el: "#app",
   data: {
+    today: "",
+    check: {},
     pages: {
       pusher: true,
       datas: false,
@@ -70,12 +72,96 @@ const app = new Vue( {
     user: {
       name: "default",
       grade: "0",
-    }
+      checked: [],
+    },
+    temper: {
+      time: 0,
+      itv: false,
+    },
+  },
+  created() {
+    this.initCheck();
+    this.today = this.dateFormatter(new Date());
   },
   mounted() {
     this.load();
+    window.addEventListener("load", () => {
+      this.initAnima();
+    }, {once: true});
+  },
+  computed: {
+    marksLength() {
+      let n = 0;
+      Object.values(this.subjects).map((value) => {
+        if (value.marks) n += value.marks.length;
+      });
+      return n;
+    },
   },
   methods: {
+    doCheck() {
+      this.user.checked.push(this.today);
+      this.check[this.today] = true;
+    },
+    
+    checkin() {
+      this.temper.time = 0;
+      this.temper.itv = setInterval(() => {
+        if (this.user.checked.includes(this.today) && this.temper.time > 3) {
+          return;
+        }
+        this.temper.time ++;
+        if (this.temper.time > 15) {
+          this.doCheck();
+          this.stopCheckin();
+        }
+      }, 100);
+    },
+    
+    stopCheckin() {
+      clearInterval(this.temper.itv);
+      this.temper.time = 0;
+    },
+    
+    setCssRoot(key, value) {
+      return document.documentElement.style.setProperty("--" + key, value);
+    },
+    
+    dateFormatter( date ) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      return formattedDate;
+    },
+    initCheck() {
+      const width = $("#check-board").clientWidth;
+      const height = 140;
+      const size = height / 7;
+      const row = Math.floor(width / size) - 1;
+      const diff = ( width - row * size ) / row / 2;
+      const number = row  * 7;
+      const today = new Date();
+      this.setCssRoot("check-box-margin", diff + "px");
+      $("#check-board").style.height = (height + diff * 12 + 2) + "px";
+      for( let i = 0; i < number; i ++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        let formated = this.dateFormatter(date);
+        this.check[formated] = this.user.checked.includes(formated);
+      }
+    },
+    initAnima() {
+      $("button").forEach(e => {
+        e.addEventListener("click", (e) => {
+          e.target.classList.add("waving");
+          setTimeout( () => {
+            e.target.classList.remove("waving");
+          }, 384);
+        });
+      });
+    },
+    
     setUser() {},
 
     save() {
