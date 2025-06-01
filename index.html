@@ -1,40 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>stumind</title>
 		<link href="css/index.css" rel="stylesheet" />
 	</head>
 	<body>
 		<div id="app">
-		  <div id="bodyline">
-		    <div id="pusher" :style="styleComputer(pages.pusher)">
-		      <div id="check" class="block">
-		        <div id="check-board">
-              <div v-for="(value, key) in check" class="check-board-box" :style="'background-color:' + (value ? 'var(--bg2)' : 'var(--bg2);opacity: 0.3')"></div>
-		        </div>
-				    <button id="check-check" class="fully" @touchstart="checkin" @touchend="stopCheckin" :style="'box-shadow:0 0 ' + (5 + temper.time) + 'px var(--bg1);filter:brightness(' + (1 + temper.time / 10) + ') blur(' + temper.time / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'" :disabled="user.checked.includes(today)">签到</button>
-		      </div>
-		      <div id="mark" class="block">
-		        <div id="mark-msg">
-		          已记录
-		          <i><b>{{marksLength}}</b></i>
-		          条成绩
-		        </div>
-		        <button @click="createMark" id="mark-pusher" class="fully">添加成绩</button>
-		      </div>
-		    </div>
-		    <div id="datas" :style="styleComputer(pages.datas)">
-          <div id="broken-line" class="chart"></div>
-        </div>
-      </div>
-      <div id="bottomline"></div>
-      <div id="conf"></div>
-    </div>
+			<div id="bodyline">
+				<div id="pusher" :style="styleComputer(pages.pusher)">
+					<div id="check" class="block">
+						<div id="check-board">
+							<div v-for="(value, key) in check" class="check-board-box" :style="'background-color:' + (value ? (value === true ? 'var(--bg2)' : 'rgba(0,0,0,0)') : 'var(--bg2);opacity: 0.2')" @click="window.alert([key,value])"></div>
+						</div>
+						<button id="check-check" class="fully" @touchstart="checkin" @touchend="stopCheckin" :style="'box-shadow:0 0 ' + (5 + temper.time) + 'px var(--bg1);filter:brightness(' + (1 + temper.time / 10) + ') blur(' + temper.time / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'" :disabled="user.checked.includes(today)">签到</button>
+					</div>
+					<div id="mark" class="block">
+						<div id="mark-msg">
+							已记录
+							<i><b>{{marksLength}}</b></i>
+							条成绩
+						</div>
+						<button @click="createMark" id="mark-pusher" class="fully">添加成绩</button>
+					</div>
+					<div id="subject" class="block">
+						<div id="subject-subject" class="article" v-for="(value, key) in subjects">
+						  <b>&nbsp;{{value.name}}</b>
+						  <span class="subject-msg">&nbsp;&nbsp;&nbsp;&nbsp;{{value.marks.length}}条</span>
+						  <button class="subject-more" @click="">&nbsp;≡</button>
+							<label class="switch">
+								<input type="checkbox" v-model="value.enable" />
+								<span class="slider"></span>
+							</label>
+						</div>
+						<div class="article">
+						  <b id="subject-add" @click="createSubject">+</b>
+						</div>
+					</div>
+				</div>
+				<div id="datas" :style="styleComputer(pages.datas)">
+					<div id="broken-line" class="chart"></div>
+				</div>
+			</div>
+			<div id="bottomline"></div>
+			<div id="conf"></div>
+		</div>
 	</body>
-    <script src="js/echarts.js"></script>
-    <script src="js/vue.js"></script>
-    <script src="js/classes.js"></script>
-    <script src="js/index.js"></script>
+	<script src="js/echarts.js"></script>
+	<script src="js/vue.js"></script>
+	<script src="js/classes.js"></script>
+	<script src="js/index.js"></script>
 </html>

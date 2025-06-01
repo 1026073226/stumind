@@ -1,184 +1,298 @@
 :root {
-  --shadow: #CCC;
-  --bg1: #428675CC;
-  --bg2: #66A9C9CC;
-  --c: #FFF;
-  --check-box-margin: 0;
+	--shadow: #ccc;
+	--bg1: #428675;
+	--bg2: #66a9c9;
+	--c: #fff;
+	--check-box-margin: 0;
 }
 
 @keyframes wave {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.98);
-  }
-  75% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
+	0% {
+		transform: scale(1);
+	}
+	40% {
+		transform: scale(0.96);
+	}
+	60% {
+		transform: scale(1.02);
+	}
+	100% {
+		transform: scale(1);
+	}
 }
 
 * {
-    transition: all 384ms;
-    outline: none;
-    user-select: none;
+	transition: all 384ms;
+	outline: none;
+	user-select: none;
 }
 
 /* 隐藏滚动条 */
 *::-webkit-scrollbar {
-  display: none; /* 隐藏滚动条 */
+	display: none; /* 隐藏滚动条 */
 }
 
 /* 保留滚动功能 */
 * {
-  -ms-overflow-style: none; /* IE 和 Edge */
-  scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE 和 Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+html,
+body,
+#app {
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+	background-color: var(--c);
 }
 
 #conf {
-  position: fixed;
-  top: 50vh;
-  right: 50vw;
-  height: auto;
-  width: auto;
-  min-width: 50vw;
-  max-width: 75vw;
-  text-align: center;
-  color: var(--c);
-  transform: translate( 50%, -50% );
-  background-color: var(--bg1);
-  backdrop-filter: blur( 5px );
-  padding: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px var(--shadow);
-  opacity: 0;
-  overflow: auto;
+	position: fixed;
+	top: 50vh;
+	right: 50vw;
+	height: auto;
+	width: 75vw;
+	text-align: center;
+	color: var(--c);
+	transform: translate(50%, -50%);
+	background-color: var(--bg1);
+	backdrop-filter: blur(5px);
+	padding: 5px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px var(--shadow);
+	opacity: 0;
+	overflow: auto;
+	pointer-events: none;
+	z-index: 99999;
 }
 
 #conf p {
-  font-size: 125%;
-  font-weight: 600;
-  margin: 5px;
+	font-size: 125%;
+	font-weight: 600;
+	margin: 5px;
 }
 
 button {
-  color: var(--c);
-  border-radius: 5px;
-  background-color: var(--bg2);
-  box-shadow: 0 0 5px var(--bg1);
-  border: none;
+	color: var(--c);
+	border-radius: 5px;
+	background-color: var(--bg2);
+	box-shadow: 0 0 5px var(--bg1);
+	border: none;
 }
 
 .waving {
-  animation: wave 384ms;
+	animation: wave 384ms;
 }
 
 .menuBtn {
-  width: 50px;
-  height: 25px;
-  line-height: 25px;
-  font-weight: 700;
+	width: 50px;
+	height: 25px;
+	line-height: 25px;
+	font-weight: 700;
 }
 
-#bodyline, #bottomline {
-  margin: 0;
-  padding: 0;
-  position: absolute;
-  left: 0;
-  width: 100vw;
+#bodyline,
+#bottomline {
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	left: 0;
+	width: 100vw;
 }
 
 #bodyline {
-  top: 0;
-  height: 95vh;
+	top: 0;
+	height: auto;
+	min-height: 95vh;
 }
 
 #bottomline {
-  bottom: 0;
-  height: 5vh;
-  background-color: var(--bg1);
-  backdrop-filter: blur( 5px );
-  box-shadow: 0 0 10px var(--shadow);
+	position: fixed;
+	bottom: 0;
+	height: 5vh;
+	background-color: var(--bg1);
+	backdrop-filter: blur(5px);
+	box-shadow: 0 0 10px var(--shadow);
 }
 
 .mark-subject-button {
-  display: inline-block;
-  border-radius: 0;
-  white-space: nowrap;
-  overflow: auto;
-  margin: 0;
-  border-right: 1px solid #DDD;
-  height: 25px;
+	display: inline-block;
+	border-radius: 0;
+	white-space: nowrap;
+	overflow: auto;
+	margin: 0;
+	border-right: 1px solid #ddd;
+	height: 25px;
 }
 
 #mark-subject {
-  margin: 5px;
-  border-radius: 5px;
-  overflow-x: auto;
-  white-space: nowrap;
-  height: 25px;
+	margin: 5px;
+	border-radius: 5px;
+	overflow-x: auto;
+	white-space: nowrap;
+	height: 25px;
 }
 
-input {
-  border-radius: 5px;
-  background-color: var(--bg2);
-  border: none;
-  margin: 5px;
-  height: 25px;
-  padding: 0;
-  padding-left: 5px;
-  color: var(--shadow);
+input:not(input[type="checkbox"]):not(input[type="range"]) {
+	border-radius: 5px;
+	background-color: var(--bg2);
+	border: none;
+	margin: 5px;
+	height: 25px;
+	padding: 0;
+	padding-left: 5px;
+	color: var(--shadow);
 }
 
-input:focus {
-  font-weight: 800;
-  color: var(--c);
+input:not(input[type="checkbox"]):not(input[type="range"]):focus {
+	font-weight: 800;
+	color: var(--c);
 }
 
 .fully {
-  width: 100%;
-  height: 50px;
-  line-height: 50px;
-  font-weight: 700;
-  font-size: 20px;
+	width: 100%;
+	height: 50px;
+	line-height: 50px;
+	font-weight: 700;
+	font-size: 20px;
 }
 
 #mark-msg {
-  color: var(--c);
-  width: 100%;
+	color: var(--c);
+	width: 100%;
 }
 
-#mark-msg b {
-  font-size: 125%;
-  text-shadow: 0 0 5px var(--bg1);
+#mark-msg b,
+.article b {
+	font-size: 125%;
+	text-shadow: 0 0 5px var(--bg2);
+	color: var(--c);
 }
 
-.block {
-  background-color: var(--bg1);
-  width: calc( 100vw - 20px );
-  margin: 5px;
-  padding: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px var(--shadow);
+.block,
+.article {
+	background-color: var(--bg1);
+	width: calc(100vw - 10px);
+	margin: 5px;
+	padding: 5px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px var(--shadow);
+	max-height: 50vh;
+	overflow: auto;
+	box-sizing: border-box;
+}
+
+.article {
+	background-color: var(--bg1);
+	filter: brightness(1.25);
+	width: auto;
+	box-shadow: none;
+	margin-top: 5px;
 }
 
 #check-board {
-  background-color: #222;
-  width: 100%;
-  border-radius: 5px;
-  margin-bottom: 5px;
-  padding-top: 1px;
+	background-color: #222;
+	width: 100%;
+	border-radius: 5px;
+	margin-bottom: 5px;
+	padding: 1px;
+	overflow: hidden;
+	column-count: auto; /* 自动列数 */
+	column-width: 20px; /* 每列的宽度 */
+	column-gap: var(--check-box-margin); /* 列间距 */
+	direction: rtl;
 }
 
 .check-board-box {
-  height: 20px;
-  width: 20px;
-  margin: 0;
-  border-radius: 5px;
+	height: 20px;
+	width: 20px;
+	border-radius: 5px;
+	margin: 0;
+	background-color: lightblue; /* 示例背景色 */
+	break-inside: avoid; /* 防止元素被拆分到两列 */
+	margin-bottom: var(--check-box-margin); /* 底部间距 */
+}
+
+.switch {
+	position: relative;
+	display: inline-block;
+	width: 50px;
+	height: 25px;
+	float: left;
+	margin-top: 2.5px;
+}
+
+.switch input {
+	display: none;
+}
+
+.switch .slider {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #a8a8a8;
+	transition: 384ms;
+	border-radius: 34px;
+}
+
+.switch .slider:before {
+	position: absolute;
+	content: "";
+	height: 21px;
+	width: 21px;
+	left: 2px;
+	bottom: 2px;
+	background-color: var(--c);
+	transition: 384ms;
+	border-radius: 50%;
+	box-shadow: 0 0 3px var(--shadow);
+}
+
+.switch input:checked + .slider {
+	background-color: var(--bg2);
+}
+
+.switch input:checked + .slider:before {
+	transform: translateX(26px);
+}
+
+.subject-more {
+	font-size: 100%;
+	float: right;
+	margin: 2px;
+	color: var(--shadow);
+	background-color: rgba(0, 0, 0, 0);
+}
+
+#subject .article {
+	height: 40px;
+}
+
+#subject-add {
+  text-align: center;
+  width: 100%;
+  display: block;
+  line-height: 30px;
+  font-size: 150%;
+  font-weight: 300;
+}
+
+#conf span {
+  width: calc(20% - 20px);
   display: inline-block;
-  float: left;
-  margin: var(--check-box-margin);
+  text-align: center;
+  margin: 0;
+}
+
+#conf input {
+  width: 80%;
+}
+
+.subject-msg {
+  color: var(--shadow);
+  filter: brightness(0.9);
+  font-size: 90%;
 }
