@@ -30,3 +30,44 @@ function $( query ) {
     return document.querySelectorAll( query );
   }
 }
+
+window.themes = {
+  green: {
+    name: "绿野仙踪",
+    style: {
+      bg0: "#aecbb4",
+      bg1: "#428675",
+	    bg2: "#66a9c9",
+	    c: "#fff",
+	    shadow: "#ccc",
+    },
+  },
+  red: {
+    name: "枫林叶晚",
+    style: {
+      bg0: "#c39e5d",
+      bg1: "#986524",
+      bg2: "#ac8156",
+      c: "#fff",
+      shadow: "#ccc",
+    }
+  },
+  black: {
+    name: "暗夜幽冥",
+    style: {
+      bg0: "#333",
+      bg1: "#444",
+      bg2: "#888",
+      c: "#fff",
+      shadow: "#666",
+    }
+  }
+};
+
+warn = "1px solid #E68";
+
+window.icons = {
+  datas: "◔",
+  pusher: "☼",
+  me: "⊹",
+};

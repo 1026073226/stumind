@@ -9,12 +9,27 @@
 	<body>
 		<div id="app">
 			<div id="bodyline">
-				<div id="pusher" :style="styleComputer(pages.pusher)">
+				<div
+					id="pusher"
+					:style="styleComputer(pages.pusher)"
+					class="page">
 					<div id="check" class="block">
 						<div id="check-board">
-							<div v-for="(value, key) in check" class="check-board-box" :style="'background-color:' + (value ? (value === true ? 'var(--bg2)' : 'rgba(0,0,0,0)') : 'var(--bg2);opacity: 0.2')" @click="window.alert([key,value])"></div>
+							<div
+								v-for="(value, key) in check"
+								class="check-board-box"
+								:style="'background-color:' + (value ? (value === true ? 'var(--bg2)' : 'rgba(0,0,0,0)') : 'var(--bg2);opacity: 0.3')"
+								@click="showCheck(key, value)"></div>
 						</div>
-						<button id="check-check" class="fully" @touchstart="checkin" @touchend="stopCheckin" :style="'box-shadow:0 0 ' + (5 + temper.time) + 'px var(--bg1);filter:brightness(' + (1 + temper.time / 10) + ') blur(' + temper.time / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'" :disabled="user.checked.includes(today)">签到</button>
+						<button
+							id="check-check"
+							class="fully"
+							@touchstart="checkin"
+							@touchend="stop('check')"
+							:style="'box-shadow:0 0 ' + (5 + (time.check || 0)) + 'px var(--bg1);filter:brightness(' + (1 + (time.check || 0) / 10) + ') blur(' + (time.check || 0) / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'"
+							:disabled="user.checked.includes(today)">
+							签到
+						</button>
 					</div>
 					<div id="mark" class="block">
 						<div id="mark-msg">
@@ -22,28 +37,65 @@
 							<i><b>{{marksLength}}</b></i>
 							条成绩
 						</div>
-						<button @click="createMark" id="mark-pusher" class="fully">添加成绩</button>
+						<button
+							@click="createMark"
+							id="mark-pusher"
+							class="fully">
+							添加成绩
+						</button>
 					</div>
 					<div id="subject" class="block">
-						<div id="subject-subject" class="article" v-for="(value, key) in subjects">
-						  <b>&nbsp;{{value.name}}</b>
-						  <span class="subject-msg">&nbsp;&nbsp;&nbsp;&nbsp;{{value.marks.length}}条</span>
-						  <button class="subject-more" @click="">&nbsp;≡</button>
+						<div
+							id="subject-subject"
+							class="article"
+							v-for="(value, key) in subjects">
+							<b>&nbsp;{{value.name}}</b>
+							<i class="subject-msg"
+								>&nbsp;&nbsp;&nbsp;&nbsp;{{value.marks.length}}条</i
+							>
+							<button
+								class="subject-more"
+								@click="configSubject(key, value)">
+								&nbsp;≡
+							</button>
 							<label class="switch">
 								<input type="checkbox" v-model="value.enable" />
 								<span class="slider"></span>
 							</label>
 						</div>
 						<div class="article">
-						  <b id="subject-add" @click="createSubject">+</b>
+							<b id="subject-add" @click="createSubject">+</b>
 						</div>
 					</div>
 				</div>
-				<div id="datas" :style="styleComputer(pages.datas)">
+				<div
+					id="datas"
+					:style="styleComputer(pages.datas)"
+					class="page">
 					<div id="broken-line" class="chart"></div>
 				</div>
+				<div id="me" :style="styleComputer(pages.me)" class="page">
+					<div class="article" id="me-me">
+						<img id="me-img" :src="user.img" />
+						<input id="me-name" v-model="user.name" />
+					</div>
+					<div class="article" id="me-theme">
+						<b>主题</b>
+						<button @click="nextTheme(user.theme)">
+							{{window.themes[user.theme].name}}
+						</button>
+					</div>
+				</div>
 			</div>
-			<div id="bottomline"></div>
+			<div id="bottomline">
+				<button
+					v-for="(value, key) in pages"
+					:style="'width:' + 100 / Object.keys(pages).length + 'vw;' + (value && 'background-color:var(--bg2)')"
+					:disabled="value"
+					@click="changePage(key)">
+					{{window.icons[key]}}
+				</button>
+			</div>
 			<div id="conf"></div>
 		</div>
 	</body>

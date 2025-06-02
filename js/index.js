@@ -4,8 +4,9 @@ const app = new Vue({
 		today: "",
 		check: {},
 		pages: {
+			datas: false,
 			pusher: true,
-			datas: false
+			me: false
 		},
 		subjects: {
 			ch: {
@@ -72,19 +73,21 @@ const app = new Vue({
 		user: {
 			name: "default",
 			grade: "0",
-			checked: []
+			checked: [],
+			theme: "green",
+			img: "appIcon.png"
 		},
-		temper: {
-			time: 0,
-			itv: false
-		}
+		time: {},
+		itv: {}
 	},
 	created() {
-		this.initCheck();
 		this.today = this.dateFormatter(new Date());
+		this.load();
+		window.addEventListener("beforeunload", this.save);
+		setInterval(this.save, 1000);
+		this.initCheck();
 	},
 	mounted() {
-		this.load();
 		window.addEventListener(
 			"load",
 			() => {
@@ -111,26 +114,19 @@ const app = new Vue({
 		},
 
 		checkin() {
-			this.temper.time = 0;
-			this.temper.itv = setInterval(() => {
-				if (this.user.checked.includes(this.today) && this.temper.time > 3) {
-					return;
-				}
-				this.temper.time++;
-				if (this.temper.time > 17) {
-					this.doCheck();
-					this.stopCheckin();
-				}
-			}, 100);
-		},
-
-		stopCheckin() {
-			clearInterval(this.temper.itv);
-			this.temper.time = 0;
+			this.start("check", this.doCheck, 17, () => {
+				return (
+					this.user.checked.includes(this.today) &&
+					this.time.check > 3
+				);
+			});
 		},
 
 		setCssRoot(key, value) {
-			return document.documentElement.style.setProperty("--" + key, value);
+			return document.documentElement.style.setProperty(
+				"--" + key,
+				value
+			);
 		},
 
 		dateFormatter(date) {
@@ -140,6 +136,7 @@ const app = new Vue({
 			const formattedDate = `${year}-${month}-${day}`;
 			return formattedDate;
 		},
+
 		initCheck() {
 			const width = $("#check-board").clientWidth - 2;
 			const height = 140;
@@ -160,13 +157,15 @@ const app = new Vue({
 					date.setDate(weekStart.getDate() - i * 7 - j); // 从本周的第一天开始，逐天递减
 					let formatted = this.dateFormatter(date);
 					if (date <= today) {
-						this.check[formatted] = this.user.checked.includes(formatted);
+						this.check[formatted] =
+							this.user.checked.includes(formatted);
 					} else {
 						this.check[formatted] = "future";
 					}
 				}
 			}
 		},
+
 		getWeekStart(obj) {
 			let date = new Date(obj);
 			const dayOfWeek = 6 - date.getDay(); // 获取当前日期是周几（0 表示周日，1 表示周一，依此类推）
@@ -174,6 +173,7 @@ const app = new Vue({
 			date.setDate(diff);
 			return date;
 		},
+
 		initAnima() {
 			$("button").forEach(e => {
 				e.addEventListener("click", e => {
@@ -189,12 +189,15 @@ const app = new Vue({
 
 		save() {
 			localStorage[this.user.name] = JSON.stringify(this.subjects);
-			localStorage.currentUser = JSON.stringify(this.user);
+			localStorage[this.user.name + "_USER"] = JSON.stringify(this.user);
 		},
 
 		load() {
-			if (this.user.name === "default" && localStorage.currentUser) {
-				this.user = JSON.parse(localStorage.currentUser);
+			if (
+				this.user.name === "default" &&
+				localStorage[this.user.name + "_USER"]
+			) {
+				this.user = JSON.parse(localStorage[this.user.name + "_USER"]);
 			}
 			if (localStorage[this.user.name]) {
 				this.subjects = JSON.parse(localStorage[this.user.name]);
@@ -211,7 +214,9 @@ const app = new Vue({
 				if (this.subjects[subject]) {
 					currentSubject = this.subjects[subject];
 				}
-				return currentSubject.marks.push(new Mark(this.user.grade, Date.now(), subject, mark, info));
+				return currentSubject.marks.push(
+					new Mark(this.user.grade, Date.now(), subject, mark, info)
+				);
 			}
 			return false;
 		},
@@ -226,28 +231,28 @@ const app = new Vue({
         <span>科目</span>
         <div id="mark-subject"></div>
         <span>分数</span>
-        <input id="mark-mark" type="number" />
+        <input id="mark-mark" type="number"  placeholder="100"/>
         <br />
         <span>信息</span>
-        <input id="mark-info" />
+        <input id="mark-info" placeholder="月考" />
         `,
 				choice => {
 					if (!choice) return;
 					let mark = $("#mark-mark").value;
 					let info = $("#mark-info").value;
 					if (!mark) {
-						$("#mark-mark").style.border = "1px solid #E68";
+						$("#mark-mark").style.border = warn;
 					} else {
 						$("#mark-mark").style.border = "";
 					}
 					if (!subject) {
-						$("#mark-subject").style.border = "1px solid #E68";
+						$("#mark-subject").style.border = warn;
 					} else {
 						$("#mark-subject").style.border = "";
 					}
 					if (mark && subject) {
 						if (mark > this.subjects[subject].full) {
-							$("#mark-mark").style.border = "1px solid #E68";
+							$("#mark-mark").style.border = warn;
 							return false;
 						}
 						res = this.newMark(subject, mark, info);
@@ -283,7 +288,7 @@ const app = new Vue({
         <input placeholder="留空以自动生成" id="subject-id" />
         <br />
         <span>名称</span>
-        <input id="subject-name" />
+        <input id="subject-name" placeholder="数学" />
         `,
 				choice => {
 					if (!choice) return;
@@ -295,7 +300,7 @@ const app = new Vue({
 					if (name) {
 						res = this.newSubject(id, name);
 					} else {
-						$("#subject-id").style.borderColor = "#E68";
+						$("#subject-name").style.border = warn;
 						return false;
 					}
 				}
@@ -321,7 +326,6 @@ const app = new Vue({
 			ym = "确认",
 			nm = "取消"
 		) {
-			//this.playSound( "ta" );
 			let t = $("#conf");
 			t.innerHTML = `
       <p>${msg}</p>
@@ -331,20 +335,158 @@ const app = new Vue({
       `;
 			t.style.opacity = 0.9;
 			t.style.pointerEvents = "all";
-			t.querySelectorAll(".menuBtn")[0].addEventListener("click", function () {
-				if (f(true) !== false) {
+			t.querySelectorAll(".menuBtn")[0].addEventListener(
+				"click",
+				function () {
+					if (f(true) !== false) {
+						t.style.opacity = 0;
+						t.style.pointerEvents = "none";
+					}
+				}
+			);
+			t.querySelectorAll(".menuBtn")[1].addEventListener(
+				"click",
+				function () {
+					f(false);
 					t.style.opacity = 0;
 					t.style.pointerEvents = "none";
 				}
-			});
-			t.querySelectorAll(".menuBtn")[1].addEventListener("click", function () {
-				f(false);
-				t.style.opacity = 0;
-				t.style.pointerEvents = "none";
-			});
+			);
 		},
+
 		styleComputer(bool) {
-			return "opacity:" + (bool ? "1" : "0") + ";pointer-events:" + (bool ? "auto" : "none");
+			return (
+				"opacity:" +
+				(bool ? "1" : "0") +
+				";pointer-events:" +
+				(bool ? "auto" : "none")
+			);
+		},
+
+		configSubject(key, value = false) {
+			if (!value) {
+				value = this.subjects[key];
+			}
+			this.confirm(
+				"设置学科",
+				`
+		    <span>I D</span>
+		    <input id="subject-id" value="${key}" />
+		    <span>满分</span>
+		    <input type="number" id="subject-full-score" value="${value.full}" />
+		    <button id="subject-delete" class="fully">删除</button>
+		  `,
+				choice => {
+					if (!choice) return;
+					let nk = $("#subject-id").value;
+					if (nk != key && !Object.keys(this.subjects).includes(nk)) {
+						this.subjects[nk] = this.subjects[key];
+						this.$delete(this.subjects, key);
+					} else {
+						$("#subject-id").style.border = warn;
+						return false;
+					}
+					return (value.full = $("#subject-full-score").value);
+				}
+			);
+			setTimeout(() => {
+				$("#subject-delete").addEventListener(
+					"touchstart",
+					this.start(
+						"subject",
+						() => {
+							this.$delete(this.subjects, key);
+						},
+						15,
+						() => {
+							$("#subject-delete").style.filter =
+								"brightness(" +
+								(this.time.subject / 15 + 1) +
+								")";
+						}
+					)
+				);
+				$("#subject-delete").addEventListener(
+					"touchend",
+					this.stop("subject")
+				);
+			}, 384);
+		},
+
+		showCheck(key, value = false) {
+			if (!value) {
+				value = this.check[key];
+			}
+			this.confirm(
+				"查看详情",
+				`
+		    <span>时间</span>
+		    <input value="${key}" disabled="true" />
+		    <span>情况</span>
+		    <input value="${
+				value === "future" ? "未来" : value ? "已签到" : "未签到"
+			}" disabled="true">
+		  `
+			);
+		},
+
+		changeTheme(key) {
+			let theme = themes[key];
+			if (theme) {
+				for (let key in theme.style) {
+					this.setCssRoot(key, theme.style[key]);
+				}
+			}
+		},
+
+		changePage(key) {
+			for (let page in this.pages) {
+				this.pages[page] = false;
+			}
+			this.pages[key] = true;
+		},
+
+		nextTheme(key) {
+			let keys = Object.keys(themes);
+			let i = keys.indexOf(key);
+			if (i < keys.length - 1) {
+				i++;
+			} else {
+				i = 0;
+			}
+			this.user.theme = keys[i];
+		},
+
+		start(
+			n,
+			d,
+			t = 15,
+			f = function () {
+				return false;
+			}
+		) {
+			this.$set(this.time, n, 0);
+			this.itv[n] = setInterval(() => {
+				if (f()) {
+					return;
+				}
+				this.$set(this.time, n, this.time[n] + 1);
+				if (this.time[n] > t) {
+					d();
+					this.stop(n);
+				}
+			}, 100);
+		},
+
+		stop(n) {
+			clearInterval(this.itv[n]);
+			this.$set(this.time, n, 0);
+		}
+	},
+	watch: {
+		"user.theme"(nv, ov) {
+			if (ov == nv) return;
+			this.changeTheme(nv);
 		}
 	}
 });
