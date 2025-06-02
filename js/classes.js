@@ -61,7 +61,17 @@ window.themes = {
       c: "#fff",
       shadow: "#666",
     }
-  }
+  },
+  grey: {
+    name: "茶韵清幽",
+    style: {
+      bg0: "#87723e",
+      bg1: "#a28b68",
+      bg2: "#867018",
+      c: "#fff",
+      shadow: "#ccc",
+    },
+  },
 };
 
 warn = "1px solid #E68";

@@ -84,7 +84,7 @@ const app = new Vue({
 		this.today = this.dateFormatter(new Date());
 		this.load();
 		window.addEventListener("beforeunload", this.save);
-		setInterval(this.save, 1000);
+		this.itv.DATA_SAVER = setInterval(this.save, 1000);
 		this.initCheck();
 	},
 	mounted() {
@@ -115,18 +115,12 @@ const app = new Vue({
 
 		checkin() {
 			this.start("check", this.doCheck, 17, () => {
-				return (
-					this.user.checked.includes(this.today) &&
-					this.time.check > 3
-				);
+				return this.user.checked.includes(this.today) && this.time.check > 3;
 			});
 		},
 
 		setCssRoot(key, value) {
-			return document.documentElement.style.setProperty(
-				"--" + key,
-				value
-			);
+			return document.documentElement.style.setProperty("--" + key, value);
 		},
 
 		dateFormatter(date) {
@@ -157,8 +151,7 @@ const app = new Vue({
 					date.setDate(weekStart.getDate() - i * 7 - j); // 从本周的第一天开始，逐天递减
 					let formatted = this.dateFormatter(date);
 					if (date <= today) {
-						this.check[formatted] =
-							this.user.checked.includes(formatted);
+						this.check[formatted] = this.user.checked.includes(formatted);
 					} else {
 						this.check[formatted] = "future";
 					}
@@ -190,13 +183,12 @@ const app = new Vue({
 		save() {
 			localStorage[this.user.name] = JSON.stringify(this.subjects);
 			localStorage[this.user.name + "_USER"] = JSON.stringify(this.user);
+			localStorage.current_USER = this.user.name;
 		},
 
 		load() {
-			if (
-				this.user.name === "default" &&
-				localStorage[this.user.name + "_USER"]
-			) {
+			if(localStorage.current_USER) this.user.name = localStorage.current_USER;
+			if (localStorage[this.user.name + "_USER"]) {
 				this.user = JSON.parse(localStorage[this.user.name + "_USER"]);
 			}
 			if (localStorage[this.user.name]) {
@@ -214,9 +206,7 @@ const app = new Vue({
 				if (this.subjects[subject]) {
 					currentSubject = this.subjects[subject];
 				}
-				return currentSubject.marks.push(
-					new Mark(this.user.grade, Date.now(), subject, mark, info)
-				);
+				return currentSubject.marks.push(new Mark(this.user.grade, Date.now(), subject, mark, info));
 			}
 			return false;
 		},
@@ -335,39 +325,31 @@ const app = new Vue({
       `;
 			t.style.opacity = 0.9;
 			t.style.pointerEvents = "all";
-			t.querySelectorAll(".menuBtn")[0].addEventListener(
-				"click",
-				function () {
-					if (f(true) !== false) {
-						t.style.opacity = 0;
-						t.style.pointerEvents = "none";
-					}
-				}
-			);
-			t.querySelectorAll(".menuBtn")[1].addEventListener(
-				"click",
-				function () {
-					f(false);
+			let cancel = () => {
+				f(false);
+				t.style.opacity = 0;
+				t.style.pointerEvents = "none";
+			};
+			let yeah = () => {
+				if (f(true) !== false) {
 					t.style.opacity = 0;
 					t.style.pointerEvents = "none";
 				}
-			);
+			};
+			t.querySelectorAll(".menuBtn")[0].addEventListener("click", yeah);
+			t.querySelectorAll(".menuBtn")[1].addEventListener("click", cancel);
+			return { cancel: cancel, confirm: yeah };
 		},
 
 		styleComputer(bool) {
-			return (
-				"opacity:" +
-				(bool ? "1" : "0") +
-				";pointer-events:" +
-				(bool ? "auto" : "none")
-			);
+			return "opacity:" + (bool ? "1" : "0") + ";pointer-events:" + (bool ? "auto" : "none");
 		},
 
 		configSubject(key, value = false) {
 			if (!value) {
 				value = this.subjects[key];
 			}
-			this.confirm(
+			let com = this.confirm(
 				"设置学科",
 				`
 		    <span>I D</span>
@@ -382,7 +364,7 @@ const app = new Vue({
 					if (nk != key && !Object.keys(this.subjects).includes(nk)) {
 						this.subjects[nk] = this.subjects[key];
 						this.$delete(this.subjects, key);
-					} else {
+					} else if(nk != key) {
 						$("#subject-id").style.border = warn;
 						return false;
 					}
@@ -390,26 +372,25 @@ const app = new Vue({
 				}
 			);
 			setTimeout(() => {
-				$("#subject-delete").addEventListener(
-					"touchstart",
+				$("#subject-delete").addEventListener("touchstart", () => {
 					this.start(
 						"subject",
 						() => {
 							this.$delete(this.subjects, key);
+							com.cancel();
 						},
 						15,
 						() => {
-							$("#subject-delete").style.filter =
-								"brightness(" +
-								(this.time.subject / 15 + 1) +
-								")";
+							$("#subject-delete").style.filter = "brightness(" + (this.time.subject / 10 + 1) + ")";
+							return false;
 						}
-					)
-				);
-				$("#subject-delete").addEventListener(
-					"touchend",
-					this.stop("subject")
-				);
+					);
+				});
+				$("#subject-delete").addEventListener("touchend", () => {
+					this.stop("subject", () => {
+						$("#subject-delete").style.filter = "";
+					});
+				});
 			}, 384);
 		},
 
@@ -423,9 +404,7 @@ const app = new Vue({
 		    <span>时间</span>
 		    <input value="${key}" disabled="true" />
 		    <span>情况</span>
-		    <input value="${
-				value === "future" ? "未来" : value ? "已签到" : "未签到"
-			}" disabled="true">
+		    <input value="${value === "future" ? "未来" : value ? "已签到" : "未签到"}" disabled="true">
 		  `
 			);
 		},
@@ -466,22 +445,45 @@ const app = new Vue({
 			}
 		) {
 			this.$set(this.time, n, 0);
-			this.itv[n] = setInterval(() => {
-				if (f()) {
-					return;
-				}
-				this.$set(this.time, n, this.time[n] + 1);
-				if (this.time[n] > t) {
-					d();
-					this.stop(n);
-				}
-			}, 100);
+			this.$set(
+				this.itv,
+				n,
+				setInterval(() => {
+					if (f()) {
+						return;
+					}
+					this.$set(this.time, n, this.time[n] + 1);
+					if (this.time[n] > t) {
+						d();
+						this.stop(n);
+					}
+				}, 100)
+			);
 		},
 
-		stop(n) {
+		stop(
+			n,
+			f = function () {
+				return;
+			}
+		) {
+			f();
 			clearInterval(this.itv[n]);
 			this.$set(this.time, n, 0);
-		}
+		},
+		
+		clearData() {
+		  this.confirm("清空数据", "数据清空后无法恢复，是否继续?<br /><br />", choice => {
+		    if(choice) {
+		      clearInterval(this.itv.DATA_SAVER);
+		      window.removeEventListener("beforeunload", this.save);
+		      localStorage[this.user.name] = "";
+		      localStorage[this.user.name + "_USER"] = "";
+		      this.user.name = "default";
+		      location = location;
+		    }
+		  })
+		},
 	},
 	watch: {
 		"user.theme"(nv, ov) {

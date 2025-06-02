@@ -352,4 +352,5 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
     line-height: 25px;
     font-size: 100%;
     margin-bottom: 5px;
+    background-color: #E66;
 }
