@@ -3,6 +3,49 @@ const app = new Vue({
 	data: {
 		today: "",
 		check: {},
+		option: {
+			dataset: {
+				source: false
+			},
+			title: {
+				text: ""
+			},
+			tooltip: {},
+			legend: {
+				data: ["条形", "折线"],
+				show: true,
+				top: 20,
+				left: "center",
+			},
+			xAxis: {
+			  type: "time",
+			  axisLabel: {
+			    formatter(value) {
+			      const date = new Date(value);
+			      return (date.getMonth() + 1) + "-" + date.getDate();
+			    }
+			  },
+			},
+			yAxis: {
+			  type: "value",
+			},
+			series: [{
+			  name: "条形",
+				type: "bar",
+				encode: {
+					x: "date",
+					y: "mark"
+				}
+			},
+			{
+			  name: "折线",
+				type: "line",
+				encode: {
+					x: "date",
+					y: "mark"
+				}
+			}]
+		},
 		pages: {
 			datas: false,
 			pusher: true,
@@ -72,13 +115,14 @@ const app = new Vue({
 		},
 		user: {
 			name: "default",
-			grade: "0",
+			grade: 0,
 			checked: [],
 			theme: "green",
 			img: "appIcon.png"
 		},
 		time: {},
-		itv: {}
+		itv: {},
+		chart: false
 	},
 	created() {
 		this.today = this.dateFormatter(new Date());
@@ -88,10 +132,12 @@ const app = new Vue({
 		this.initCheck();
 	},
 	mounted() {
+		this.initChart();
 		window.addEventListener(
 			"load",
 			() => {
 				this.initAnima();
+				this.loadChart();
 			},
 			{
 				once: true
@@ -115,12 +161,18 @@ const app = new Vue({
 
 		checkin() {
 			this.start("check", this.doCheck, 17, () => {
-				return this.user.checked.includes(this.today) && this.time.check > 3;
+				return (
+					this.user.checked.includes(this.today) &&
+					this.time.check > 3
+				);
 			});
 		},
 
 		setCssRoot(key, value) {
-			return document.documentElement.style.setProperty("--" + key, value);
+			return document.documentElement.style.setProperty(
+				"--" + key,
+				value
+			);
 		},
 
 		dateFormatter(date) {
@@ -151,7 +203,8 @@ const app = new Vue({
 					date.setDate(weekStart.getDate() - i * 7 - j); // 从本周的第一天开始，逐天递减
 					let formatted = this.dateFormatter(date);
 					if (date <= today) {
-						this.check[formatted] = this.user.checked.includes(formatted);
+						this.check[formatted] =
+							this.user.checked.includes(formatted);
 					} else {
 						this.check[formatted] = "future";
 					}
@@ -187,7 +240,8 @@ const app = new Vue({
 		},
 
 		load() {
-			if(localStorage.current_USER) this.user.name = localStorage.current_USER;
+			if (localStorage.current_USER)
+				this.user.name = localStorage.current_USER;
 			if (localStorage[this.user.name + "_USER"]) {
 				this.user = JSON.parse(localStorage[this.user.name + "_USER"]);
 			}
@@ -206,7 +260,9 @@ const app = new Vue({
 				if (this.subjects[subject]) {
 					currentSubject = this.subjects[subject];
 				}
-				return currentSubject.marks.push(new Mark(this.user.grade, Date.now(), subject, mark, info));
+				return currentSubject.marks.push(
+					new Mark(this.user.grade, Date.now(), subject, mark, info)
+				);
 			}
 			return false;
 		},
@@ -229,7 +285,7 @@ const app = new Vue({
 				choice => {
 					if (!choice) return;
 					let mark = $("#mark-mark").value;
-					let info = $("#mark-info").value;
+					let info = $("#mark-info").value || this.today;
 					if (!mark) {
 						$("#mark-mark").style.border = warn;
 					} else {
@@ -251,19 +307,30 @@ const app = new Vue({
 					}
 				}
 			);
-			for (let key in this.subjects) {
+			let keys = Object.keys(this.subjects).filter(key => {
+				return this.subjects[key].enable;
+			});
+			for (let i = 0; i < keys.length; i++) {
+				let key = keys[i];
 				const button = document.createElement("button");
 				button.className = "mark-subject-button";
 				button.innerText = this.subjects[key].name;
+				if (i === keys.length - 1) {
+					button.style.border = "none";
+				}
 				$("#mark-subject")
 					.appendChild(button)
 					.addEventListener("click", e => {
 						subject = key;
-						e.target.style.backgroundColor = "rgb(232,232,100)";
+						e.target.style.backgroundColor = "var(--bg0)";
 						if (lastone) {
 							lastone.style.backgroundColor = "";
 						}
-						lastone = e.target;
+						if (lastone == e.target) {
+							lastone = null;
+						} else {
+							lastone = e.target;
+						}
 					});
 			}
 			return res;
@@ -320,8 +387,8 @@ const app = new Vue({
 			t.innerHTML = `
       <p>${msg}</p>
       ${innerHTML}
-      <button class="menuBtn" style="background-color: #AFA;width: calc(50% - 8px)">${ym}</button>
-      <button class="menuBtn" style="background-color: #FAA;width: calc(50% - 8px)">${nm}</button>
+      <button class="menuBtn" style="background-color: var(--bg2);width: calc(50% - 8px)">${ym}</button>
+      <button class="menuBtn" style="background-color: var(--bg2);width: calc(50% - 8px)">${nm}</button>
       `;
 			t.style.opacity = 0.9;
 			t.style.pointerEvents = "all";
@@ -342,7 +409,12 @@ const app = new Vue({
 		},
 
 		styleComputer(bool) {
-			return "opacity:" + (bool ? "1" : "0") + ";pointer-events:" + (bool ? "auto" : "none");
+			return (
+				"opacity:" +
+				(bool ? "1" : "0") +
+				";pointer-events:" +
+				(bool ? "auto" : "none")
+			);
 		},
 
 		configSubject(key, value = false) {
@@ -354,21 +426,45 @@ const app = new Vue({
 				`
 		    <span>I D</span>
 		    <input id="subject-id" value="${key}" />
-		    <span>满分</span>
+		    <span>名称</span>
+		    <input id="subject-keyname" value="${value.name}"
+		    <span>总分</span>
 		    <input type="number" id="subject-full-score" value="${value.full}" />
 		    <button id="subject-delete" class="fully">删除</button>
 		  `,
 				choice => {
 					if (!choice) return;
+					let res = true;
 					let nk = $("#subject-id").value;
-					if (nk != key && !Object.keys(this.subjects).includes(nk)) {
+					let kn = $("#subject-keyname").value;
+					let fl = $("#subject-full-score").value;
+					if (kn) {
+						value.name = kn;
+						$("#subject-keyname").style.border = "";
+					} else if (!kn) {
+						$("#subject-keyname").style.border = warn;
+						res = false;
+					}
+					if (fl) {
+						value.full = fl;
+						$("#subject-full-score").style.border = "";
+					} else if (!fl) {
+						$("#subject-full-score").style.border = warn;
+						res = false;
+					}
+					if (
+						nk &&
+						nk != key &&
+						!Object.keys(this.subjects).includes(nk)
+					) {
 						this.subjects[nk] = this.subjects[key];
 						this.$delete(this.subjects, key);
-					} else if(nk != key) {
+						$("#subject-id").style.border = "";
+					} else if (nk != key) {
 						$("#subject-id").style.border = warn;
-						return false;
+						res = false;
 					}
-					return (value.full = $("#subject-full-score").value);
+					return res;
 				}
 			);
 			setTimeout(() => {
@@ -381,7 +477,10 @@ const app = new Vue({
 						},
 						15,
 						() => {
-							$("#subject-delete").style.filter = "brightness(" + (this.time.subject / 10 + 1) + ")";
+							$("#subject-delete").style.filter =
+								"brightness(" +
+								(this.time.subject / 10 + 1) +
+								")";
 							return false;
 						}
 					);
@@ -404,7 +503,9 @@ const app = new Vue({
 		    <span>时间</span>
 		    <input value="${key}" disabled="true" />
 		    <span>情况</span>
-		    <input value="${value === "future" ? "未来" : value ? "已签到" : "未签到"}" disabled="true">
+		    <input value="${
+				value === "future" ? "未来" : value ? "已签到" : "未签到"
+			}" disabled="true">
 		  `
 			);
 		},
@@ -471,19 +572,36 @@ const app = new Vue({
 			clearInterval(this.itv[n]);
 			this.$set(this.time, n, 0);
 		},
-		
+
 		clearData() {
-		  this.confirm("清空数据", "数据清空后无法恢复，是否继续?<br /><br />", choice => {
-		    if(choice) {
-		      clearInterval(this.itv.DATA_SAVER);
-		      window.removeEventListener("beforeunload", this.save);
-		      localStorage[this.user.name] = "";
-		      localStorage[this.user.name + "_USER"] = "";
-		      this.user.name = "default";
-		      location = location;
-		    }
-		  })
+			this.confirm(
+				"清空数据",
+				"数据清空后无法恢复，是否继续?<br /><br />",
+				choice => {
+					if (choice) {
+						clearInterval(this.itv.DATA_SAVER);
+						window.removeEventListener("beforeunload", this.save);
+						localStorage[this.user.name] = "";
+						localStorage[this.user.name + "_USER"] = "";
+						this.user.name = "default";
+						location = location;
+					}
+				}
+			);
 		},
+		changeGrade() {
+			this.user.grade++;
+			if (!GET_GRADE_NAME(this.user.grade)) {
+				this.user.grade = 0;
+			}
+		},
+		initChart() {
+			this.chart = echarts.init($("#data-bar"));
+		},
+		loadChart() {
+			this.option.dataset.source = this.subjects.ch.marks;
+			this.chart.setOption(this.option);
+		}
 	},
 	watch: {
 		"user.theme"(nv, ov) {

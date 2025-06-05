@@ -4,6 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>stumind</title>
+		<link href="css/bootstrap.min.css" rel="stylesheet" />
 		<link href="css/index.css" rel="stylesheet" />
 	</head>
 	<body>
@@ -72,12 +73,33 @@
 					id="datas"
 					:style="styleComputer(pages.datas)"
 					class="page">
-					<div id="broken-line" class="chart"></div>
+					<div class="dropdown">
+						<button
+							class="btn btn-secondary dropdown-toggle"
+							type="button"
+							data-bs-toggle="dropdown"
+							aria-expanded="false" id="grade-chooser">
+							{{window.GET_GRADE_NAME(user.grade)}}年级
+						</button>
+						<ul class="dropdown-menu">
+							<li
+								class="dropdown-item"
+								v-for="(item, index) in window.grades"
+								@click="(user.grade = index)">
+								{{item}}
+							</li>
+						</ul>
+					</div>
+
+					<div id="data-bar" class="chart"></div>
 				</div>
 				<div id="me" :style="styleComputer(pages.me)" class="page">
 					<div class="article" id="me-me">
 						<img id="me-img" :src="user.img" />
-						<input id="me-name" v-model="user.name" />
+						<input
+							id="me-name"
+							v-model="user.name"
+							:disabled="true" />
 					</div>
 					<div class="article" id="me-theme">
 						<b>主题</b>
@@ -86,8 +108,14 @@
 						</button>
 					</div>
 					<div class="article" id="me-data">
-					  <b>数据</b>
-					  <button @click="clearData">清空</button>
+						<b>数据</b>
+						<button @click="clearData">清空</button>
+					</div>
+					<div class="article" id="me-grade">
+						<b>年级</b>
+						<button @click="changeGrade">
+							{{window.GET_GRADE_NAME(user.grade)}}
+						</button>
 					</div>
 				</div>
 			</div>
@@ -107,4 +135,6 @@
 	<script src="js/vue.js"></script>
 	<script src="js/classes.js"></script>
 	<script src="js/index.js"></script>
+	<script src="js/popper.min.js"></script>
+	<script src="js/bootstrap.bundle.min.js"></script>
 </html>
