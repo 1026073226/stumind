@@ -6,6 +6,7 @@
 		<title>stumind</title>
 		<link href="css/bootstrap.min.css" rel="stylesheet" />
 		<link href="css/index.css" rel="stylesheet" />
+		<link href="css/tabulator.min.css" rel="stylesheet" />
 	</head>
 	<body>
 		<div id="app">
@@ -35,7 +36,7 @@
 					<div id="mark" class="block">
 						<div id="mark-msg">
 							已记录
-							<i><b>{{marksLength}}</b></i>
+							<i><b>{{marks.length}}</b></i>
 							条成绩
 						</div>
 						<button
@@ -43,6 +44,19 @@
 							id="mark-pusher"
 							class="fully">
 							添加成绩
+						</button>
+					</div>
+					<div id="exam" class="block">
+						<div id="exam-msg">
+							已记录
+							<i><b>{{exams.length}}</b></i>
+							场考试
+						</div>
+						<button
+							@click="createExam"
+							id="exam-pusher"
+							class="fully">
+							新建考试
 						</button>
 					</div>
 					<div id="subject" class="block">
@@ -73,24 +87,45 @@
 					id="datas"
 					:style="styleComputer(pages.datas)"
 					class="page">
-					<div class="dropdown">
-						<button
-							class="btn btn-secondary dropdown-toggle"
-							type="button"
-							data-bs-toggle="dropdown"
-							aria-expanded="false" id="grade-chooser">
-							{{window.GET_GRADE_NAME(user.grade)}}年级
-						</button>
-						<ul class="dropdown-menu">
-							<li
-								class="dropdown-item"
-								v-for="(item, index) in window.grades"
-								@click="(user.grade = index)">
-								{{item}}
-							</li>
-						</ul>
+					<div id="topline">
+						<div class="dropdown">
+							<button
+								class="btn btn-secondary dropdown-toggle chooser"
+								type="button"
+								data-bs-toggle="dropdown"
+								aria-expanded="false"
+								id="grade-chooser">
+								{{window.GET_GRADE_NAME(user.grade)}}年级
+							</button>
+							<ul class="dropdown-menu">
+								<li
+									class="dropdown-item"
+									v-for="(item, index) in window.grades"
+									@click="(user.grade = index)">
+									{{item}}
+								</li>
+							</ul>
+						</div>
+						<div class="dropdown">
+							<button
+								class="btn btn-secondary dropdown-toggle chooser"
+								type="button"
+								data-bs-toggle="dropdown"
+								aria-expanded="false"
+								id="subject-chooser">
+								{{subjects[current.subject].name}}
+							</button>
+							<ul class="dropdown-menu">
+								<li
+									class="dropdown-item"
+									v-for="(item, index) in subjects"
+									@click="(current.subject = index)"
+									v-if="item.enable">
+									{{item.name}}
+								</li>
+							</ul>
+						</div>
 					</div>
-
 					<div id="data-bar" class="chart"></div>
 				</div>
 				<div id="me" :style="styleComputer(pages.me)" class="page">
@@ -131,10 +166,11 @@
 			<div id="conf"></div>
 		</div>
 	</body>
-	<script src="js/echarts.js"></script>
 	<script src="js/vue.js"></script>
-	<script src="js/classes.js"></script>
-	<script src="js/index.js"></script>
 	<script src="js/popper.min.js"></script>
 	<script src="js/bootstrap.bundle.min.js"></script>
+	<script src="js/tabulator.min.js"></script>
+	<script src="js/echarts.js"></script>
+	<script src="js/classes.js"></script>
+	<script src="js/index.js"></script>
 </html>

@@ -169,13 +169,14 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	font-size: 20px;
 }
 
-#mark-msg {
+#mark-msg, #exam-msg {
 	color: var(--c);
 	width: 100%;
 }
 
 #mark-msg b,
-.article b {
+.article b,
+#exam-msg b{
 	font-size: 125%;
 	text-shadow: 0 0 5px var(--bg2);
 	color: var(--c);
@@ -189,7 +190,7 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	padding: 5px;
 	border-radius: 5px;
 	box-shadow: 0 0 10px var(--shadow);
-	max-height: 50vh;
+	max-height: 40vh;
 	overflow: auto;
 	box-sizing: border-box;
 }
@@ -372,7 +373,7 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 }
 
 .chart {
-  height: 100vh;
+  height: calc(100vh - 30px);
   width: 100vw;
   position: fixed;
   left: 0;
@@ -382,9 +383,46 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
   z-index: 0;
 }
 
-#grade-chooser {
-  position: fixed;
-  left: 2px;
-  top: 2px;
+.chooser {
+  position: relative;
   z-index: 1;
+  background-color: var(--bg1);
+}
+
+.dropdown {
+  display: inline-block;
+}
+
+.chart-date, .chart-info {
+  color: var(--shadow);
+  font-size: 90%;
+}
+
+.chart-color {
+  border-radius: 50%;
+  height: 0.8em;
+  width: 0.8em;
+  display: inline-block;
+}
+
+#topline {
+  height: 30px;
+}
+
+.chart-add {
+  color: var(--shadow);
+  font-size: 3px;
+  background-color: rgba(0,0,0,0);
+  border: none;
+  box-shadow: 0 0 3px var(--shadow);
+  width: 20px;
+  height: 20px;
+}
+
+#exam-table {
+  max-height: 75vh;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px var(--shadow);
+  border: none;
 }

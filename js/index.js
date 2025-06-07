@@ -3,6 +3,10 @@ const app = new Vue({
 	data: {
 		today: "",
 		check: {},
+		result: [],
+		current: {
+			subject: ""
+		},
 		option: {
 			dataset: {
 				source: false
@@ -10,41 +14,100 @@ const app = new Vue({
 			title: {
 				text: ""
 			},
-			tooltip: {},
+			tooltip: {
+				formatter(params) {
+					return `
+			      <span class="chart-date">${app.dateFormatter(
+						new Date(params.data.date)
+					)}</span>
+			      <br />
+			      <div class="chart-color" style="background-color:${params.color}"></div>
+			      <b class="chart-mark">${params.data.mark}</b>
+			      <br />
+			      <span class="chart-info">${params.data.info}</span>
+			    `;
+				}
+			},
 			legend: {
-				data: ["条形", "折线"],
+				data: ["条形", "折线", "散点", "平均"],
 				show: true,
 				top: 20,
 				left: "center",
+				selected: {
+					条形: true,
+					折线: true,
+					散点: false,
+					平均: false
+				}
 			},
-			xAxis: {
-			  type: "time",
-			  axisLabel: {
-			    formatter(value) {
-			      const date = new Date(value);
-			      return (date.getMonth() + 1) + "-" + date.getDate();
-			    }
-			  },
-			},
+			xAxis: [
+				{
+					type: "category",
+					axisLabel: {
+						formatter(value) {
+							const date = new Date(Number(value));
+							return date.getMonth() + 1 + "-" + date.getDate();
+						}
+					}
+				},
+				{
+					type: "value",
+					min: 0,
+					max: 1,
+					show: false
+				}
+			],
 			yAxis: {
-			  type: "value",
+				type: "value"
 			},
-			series: [{
-			  name: "条形",
-				type: "bar",
-				encode: {
-					x: "date",
-					y: "mark"
+			series: [
+				{
+					name: "条形",
+					type: "bar",
+					encode: {
+						x: "date",
+						y: "mark"
+					},
+					xAxisIndex: 0
+				},
+				{
+					name: "折线",
+					type: "line",
+					encode: {
+						x: "date",
+						y: "mark"
+					},
+					xAxisIndex: 0
+				},
+				{
+					name: "散点",
+					type: "scatter",
+					encode: {
+						x: "date",
+						y: "mark"
+					},
+					symbolSize(data) {
+						return data.mark;
+					}
+				},
+				{
+					name: "平均",
+					type: "line",
+					encode: {
+						y: "mark"
+					},
+					markLine: {
+						symbol: ["none", "none"],
+						data: [
+							{
+								type: "average",
+								name: "平均"
+							}
+						]
+					},
+					xAxisIndex: 1
 				}
-			},
-			{
-			  name: "折线",
-				type: "line",
-				encode: {
-					x: "date",
-					y: "mark"
-				}
-			}]
+			]
 		},
 		pages: {
 			datas: false,
@@ -113,6 +176,7 @@ const app = new Vue({
 				full: 60
 			}
 		},
+		exams: [],
 		user: {
 			name: "default",
 			grade: 0,
@@ -125,8 +189,12 @@ const app = new Vue({
 		chart: false
 	},
 	created() {
-		this.today = this.dateFormatter(new Date());
 		this.load();
+		for (let key in this.subjects) {
+			this.current.subject = key;
+			break;
+		}
+		this.today = this.dateFormatter(new Date());
 		window.addEventListener("beforeunload", this.save);
 		this.itv.DATA_SAVER = setInterval(this.save, 1000);
 		this.initCheck();
@@ -145,10 +213,14 @@ const app = new Vue({
 		);
 	},
 	computed: {
-		marksLength() {
-			let n = 0;
+		marks() {
+			let n = [];
 			Object.values(this.subjects).map(value => {
-				if (value.marks) n += value.marks.length;
+				if (value.marks) {
+					value.marks.map(mark => {
+						if (mark.grade == this.user.grade) n.push(mark);
+					});
+				}
 			});
 			return n;
 		}
@@ -175,7 +247,20 @@ const app = new Vue({
 			);
 		},
 
-		dateFormatter(date) {
+		dateFormatter(date, time = false) {
+			if (time) {
+				const hours = date.getHours(); // 时 (0-23)
+				const minutes = date.getMinutes(); // 分 (0-59)
+				const seconds = date.getSeconds(); // 秒 (0-59)
+
+				// 格式化为两位数（例如：01:05:09）
+				const formattedTime = [
+					hours.toString().padStart(2, "0"),
+					minutes.toString().padStart(2, "0"),
+					seconds.toString().padStart(2, "0")
+				].join(":");
+				return formattedTime;
+			}
 			const year = date.getFullYear();
 			const month = String(date.getMonth() + 1).padStart(2, "0");
 			const day = String(date.getDate()).padStart(2, "0");
@@ -237,6 +322,7 @@ const app = new Vue({
 			localStorage[this.user.name] = JSON.stringify(this.subjects);
 			localStorage[this.user.name + "_USER"] = JSON.stringify(this.user);
 			localStorage.current_USER = this.user.name;
+			localStorage[this.user.name + "_EXAM"] = JSON.stringify(this.exams);
 		},
 
 		load() {
@@ -244,6 +330,9 @@ const app = new Vue({
 				this.user.name = localStorage.current_USER;
 			if (localStorage[this.user.name + "_USER"]) {
 				this.user = JSON.parse(localStorage[this.user.name + "_USER"]);
+			}
+			if (localStorage[this.user.name + "_EXAM"]) {
+				this.exams = JSON.parse(localStorage[this.user.name + "_EXAM"]);
 			}
 			if (localStorage[this.user.name]) {
 				this.subjects = JSON.parse(localStorage[this.user.name]);
@@ -254,7 +343,7 @@ const app = new Vue({
 			this.$set(this.subjects, key, this.subjectObj(name));
 		},
 
-		newMark(subject, mark, info = "") {
+		newMark(subject, mark, info) {
 			if (subject && mark) {
 				let currentSubject;
 				if (this.subjects[subject]) {
@@ -285,7 +374,9 @@ const app = new Vue({
 				choice => {
 					if (!choice) return;
 					let mark = $("#mark-mark").value;
-					let info = $("#mark-info").value || this.today;
+					let info =
+						$("#mark-info").value ||
+						this.dateFormatter(new Date(), true);
 					if (!mark) {
 						$("#mark-mark").style.border = warn;
 					} else {
@@ -599,14 +690,109 @@ const app = new Vue({
 			this.chart = echarts.init($("#data-bar"));
 		},
 		loadChart() {
-			this.option.dataset.source = this.subjects.ch.marks;
+			this.dataPreRenderer();
+			this.option.dataset.source = this.result;
 			this.chart.setOption(this.option);
+			delete this.option.legend.selected;
+		},
+		dataPreRenderer() {
+			this.result = this.subjects[this.current.subject].marks.filter(
+				mark => {
+					return mark.grade == this.user.grade;
+				}
+			);
+		},
+		createExam() {
+			this.confirm(
+				"新建考试",
+				`
+		    <div id="exam-table"></div>
+		    <span>名称</span>
+		    <input id="exam-name" placeholder="月考" />
+		  `
+			, choice => {
+			  if (!choice) return;
+			  const name = $("#exam-name").value;
+			  const marks = table.getSelectedData();
+			  let res = true;
+			  if(name && marks.length > 0) {
+			    this.exams.push(new Exam(this.user.grade, Date.now(), marks, name));
+			  }
+			  if(!name) {
+			    $("#exam-name").style.border = warn;
+			    res = false;
+			  } else {
+			    $("#exam-name").style.border = "";
+			  }
+			  if(marks.length < 1) {
+			    $("#exam-table").style.border = warn;
+			    res = false;
+			  } else {
+			    $("#exam-table").style.border = "";
+			  }
+			  return res;
+			});
+			const table = new Tabulator("#exam-table", {
+				data: this.marks,
+				columns: [
+					{
+						title: "选择",
+						formatter: "rowSelection",
+						headerSort: false,
+						resizable: false,
+						cellClick(e, cell) {
+							cell.getRow().toggleSelect();
+						},
+						selectable: true,
+						selectableRangeMode: "click"
+					},
+
+					{
+						title: "学科",
+						field: "subject",
+						formatter(cell) {
+							let v = cell.getValue();
+							return app.subjects[v].name;
+						},
+						resizable: false
+					},
+					{
+						title: "分数",
+						field: "mark",
+						resizable: false
+					},
+					{
+						title: "信息",
+						field: "info",
+						resizable: false
+					},
+					{
+						title: "日期",
+						field: "date",
+						formatter(cell) {
+							let v = cell.getValue();
+							const date = new Date(v);
+							return app.dateFormatter(date);
+						},
+						resizable: false
+					}
+				]
+			});
 		}
 	},
 	watch: {
 		"user.theme"(nv, ov) {
 			if (ov == nv) return;
 			this.changeTheme(nv);
+		},
+		"user.grade"() {
+			this.loadChart();
+		},
+		"current.subject"() {
+			this.loadChart();
+		},
+		"pages.datas"(nv, ov) {
+			if (nv) this.loadChart();
 		}
 	}
 });

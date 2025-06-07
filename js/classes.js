@@ -25,22 +25,17 @@ class Exam {
 	constructor(grade, date, marks, info) {
 		this.grade = grade;
 		this.date = date;
-		this.subject = subject;
-		this.mark = mark;
+		this.marks = marks;
 		this.info = info;
 		this.part = {};
+		this.marks.map(mark => {
+		  if(!this.part[mark.subject]) this.part[mark.subject] = 0;
+		  this.part[mark.subject] += mark.mark;
+		});
 	}
 
-	getPartProp(name) {
-		if (this.part[name]) {
-			return this.part[name].mark / this.mark;
-		}
-	}
-
-	getMarkProp(full) {
-		if (this.mark) {
-			return this.mark / full;
-		}
+	add(mark) {
+	  return this.marks.push(mark);
 	}
 }
 
