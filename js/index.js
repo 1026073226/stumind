@@ -5,8 +5,10 @@ const app = new Vue({
 		check: {},
 		result: [],
 		current: {
-			subject: ""
+			subject: "",
+			type: "学科"
 		},
+		types: ["学科", "考试"],
 		option: {
 			dataset: {
 				source: false
@@ -674,6 +676,7 @@ const app = new Vue({
 						window.removeEventListener("beforeunload", this.save);
 						localStorage[this.user.name] = "";
 						localStorage[this.user.name + "_USER"] = "";
+						localStorage[this.user.name + "_EXAM"] = "";
 						this.user.name = "default";
 						location = location;
 					}
@@ -709,29 +712,32 @@ const app = new Vue({
 		    <div id="exam-table"></div>
 		    <span>名称</span>
 		    <input id="exam-name" placeholder="月考" />
-		  `
-			, choice => {
-			  if (!choice) return;
-			  const name = $("#exam-name").value;
-			  const marks = table.getSelectedData();
-			  let res = true;
-			  if(name && marks.length > 0) {
-			    this.exams.push(new Exam(this.user.grade, Date.now(), marks, name));
-			  }
-			  if(!name) {
-			    $("#exam-name").style.border = warn;
-			    res = false;
-			  } else {
-			    $("#exam-name").style.border = "";
-			  }
-			  if(marks.length < 1) {
-			    $("#exam-table").style.border = warn;
-			    res = false;
-			  } else {
-			    $("#exam-table").style.border = "";
-			  }
-			  return res;
-			});
+		  `,
+				choice => {
+					if (!choice) return;
+					const name = $("#exam-name").value;
+					const marks = table.getSelectedData();
+					let res = true;
+					if (name && marks.length > 0) {
+						this.exams.push(
+							new Exam(this.user.grade, Date.now(), marks, name)
+						);
+					}
+					if (!name) {
+						$("#exam-name").style.border = warn;
+						res = false;
+					} else {
+						$("#exam-name").style.border = "";
+					}
+					if (marks.length < 1) {
+						$("#exam-table").style.border = warn;
+						res = false;
+					} else {
+						$("#exam-table").style.border = "";
+					}
+					return res;
+				}
+			);
 			const table = new Tabulator("#exam-table", {
 				data: this.marks,
 				columns: [

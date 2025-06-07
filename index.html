@@ -112,6 +112,24 @@
 								type="button"
 								data-bs-toggle="dropdown"
 								aria-expanded="false"
+								id="type-chooser">
+								{{current.type}}
+							</button>
+							<ul class="dropdown-menu">
+								<li
+									class="dropdown-item"
+									v-for="(item, index) in types"
+									@click="(current.type = item)">
+									{{item}}
+								</li>
+							</ul>
+						</div>
+						<div class="dropdown">
+							<button
+								class="btn btn-secondary dropdown-toggle chooser"
+								type="button"
+								data-bs-toggle="dropdown"
+								aria-expanded="false"
 								id="subject-chooser">
 								{{subjects[current.subject].name}}
 							</button>

@@ -6,6 +6,8 @@ class Mark {
 		this.mark = mark;
 		this.info = info;
 		this.part = {};
+		this.name = app.subjects[this.subject].name;
+		this.value = this.mark;
 	}
 
 	getPartProp(name) {
