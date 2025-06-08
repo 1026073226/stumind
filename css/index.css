@@ -113,8 +113,7 @@ button {
 
 #bodyline {
 	top: 0;
-	height: auto;
-	min-height: 95vh;
+	height: 95vh;
 }
 
 #bottomline {
@@ -351,7 +350,7 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	height: 2em;
 }
 
-#subject-delete {
+#subject-delete, #mark-delete {
 	height: 25px;
 	line-height: 25px;
 	font-size: 100%;
@@ -425,4 +424,18 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
   border-radius: 5px;
   box-shadow: 0 0 5px var(--shadow);
   border: none;
+}
+
+#pusher {
+  overflow: auto;
+  height: 100%;
+}
+
+.tooltip-button {
+  background-color: rgba(0,0,0,0);
+  color: var(--shadow);
+  box-shadow: 0 0 3px var(--shadow);
+  height: 20px;
+  width: 20px;
+  line-height: 20px;
 }

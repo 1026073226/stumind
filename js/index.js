@@ -6,7 +6,8 @@ const app = new Vue({
 		result: [],
 		current: {
 			subject: "",
-			type: "学科"
+			type: "学科",
+			exam: 0
 		},
 		types: ["学科", "考试"],
 		option: {
@@ -17,16 +18,18 @@ const app = new Vue({
 				text: ""
 			},
 			tooltip: {
+				triggerOn: "click",
+				enterable: true,
 				formatter(params) {
 					return `
-			      <span class="chart-date">${app.dateFormatter(
-						new Date(params.data.date)
-					)}</span>
+			      <span class="chart-date">${app.dateFormatter(new Date(params.data.date))}</span>
 			      <br />
 			      <div class="chart-color" style="background-color:${params.color}"></div>
 			      <b class="chart-mark">${params.data.mark}</b>
 			      <br />
 			      <span class="chart-info">${params.data.info}</span>
+			      <button class="tooltip-button" onclick="app.moreAboutMark(${params.dataIndex})">+</button>
+			      <button class="tooltip-button">◔</button>
 			    `;
 				}
 			},
@@ -86,6 +89,104 @@ const app = new Vue({
 					type: "scatter",
 					encode: {
 						x: "date",
+						y: "mark"
+					},
+					symbolSize(data) {
+						return data.mark / 2;
+					}
+				},
+				{
+					name: "平均",
+					type: "line",
+					encode: {
+						y: "mark"
+					},
+					markLine: {
+						symbol: ["none", "none"],
+						data: [
+							{
+								type: "average",
+								name: "平均"
+							}
+						]
+					},
+					xAxisIndex: 1
+				}
+			]
+		},
+		examOption: {
+			dataset: {
+				source: false
+			},
+			title: {
+				text: ""
+			},
+			tooltip: {
+				formatter(params) {
+					return `
+			      <span class="chart-date">${app.dateFormatter(new Date(params.data.date))}</span>
+			      <br />
+			      <div class="chart-color" style="background-color:${params.color}"></div>
+			      <b class="chart-mark">${params.data.mark}</b>
+			      <br />
+			      <span class="chart-info">${params.data.info}</span>
+			    `;
+				}
+			},
+			legend: {
+				data: ["饼图", "条形", "散点", "平均"],
+				show: true,
+				top: 20,
+				left: "center",
+				selected: {
+					饼图: true,
+					条形: false,
+					散点: false,
+					平均: false
+				}
+			},
+			xAxis: [
+				{
+					type: "category",
+					axisLabel: {
+						formatter(value) {
+							return value;
+						}
+					}
+				},
+				{
+					type: "value",
+					min: 0,
+					max: 1,
+					show: false
+				}
+			],
+			yAxis: {
+				type: "value"
+			},
+			series: [
+				{
+					name: "饼图",
+					type: "pie",
+					encode: {
+						itemName: "name",
+						value: "value"
+					}
+				},
+				{
+					name: "条形",
+					type: "bar",
+					encode: {
+						x: "name",
+						y: "mark"
+					},
+					xAxisIndex: 0
+				},
+				{
+					name: "散点",
+					type: "scatter",
+					encode: {
+						x: "name",
 						y: "mark"
 					},
 					symbolSize(data) {
@@ -235,18 +336,12 @@ const app = new Vue({
 
 		checkin() {
 			this.start("check", this.doCheck, 17, () => {
-				return (
-					this.user.checked.includes(this.today) &&
-					this.time.check > 3
-				);
+				return this.user.checked.includes(this.today) && this.time.check > 3;
 			});
 		},
 
 		setCssRoot(key, value) {
-			return document.documentElement.style.setProperty(
-				"--" + key,
-				value
-			);
+			return document.documentElement.style.setProperty("--" + key, value);
 		},
 
 		dateFormatter(date, time = false) {
@@ -256,11 +351,7 @@ const app = new Vue({
 				const seconds = date.getSeconds(); // 秒 (0-59)
 
 				// 格式化为两位数（例如：01:05:09）
-				const formattedTime = [
-					hours.toString().padStart(2, "0"),
-					minutes.toString().padStart(2, "0"),
-					seconds.toString().padStart(2, "0")
-				].join(":");
+				const formattedTime = [hours.toString().padStart(2, "0"), minutes.toString().padStart(2, "0"), seconds.toString().padStart(2, "0")].join(":");
 				return formattedTime;
 			}
 			const year = date.getFullYear();
@@ -290,8 +381,7 @@ const app = new Vue({
 					date.setDate(weekStart.getDate() - i * 7 - j); // 从本周的第一天开始，逐天递减
 					let formatted = this.dateFormatter(date);
 					if (date <= today) {
-						this.check[formatted] =
-							this.user.checked.includes(formatted);
+						this.check[formatted] = this.user.checked.includes(formatted);
 					} else {
 						this.check[formatted] = "future";
 					}
@@ -328,8 +418,7 @@ const app = new Vue({
 		},
 
 		load() {
-			if (localStorage.current_USER)
-				this.user.name = localStorage.current_USER;
+			if (localStorage.current_USER) this.user.name = localStorage.current_USER;
 			if (localStorage[this.user.name + "_USER"]) {
 				this.user = JSON.parse(localStorage[this.user.name + "_USER"]);
 			}
@@ -351,9 +440,7 @@ const app = new Vue({
 				if (this.subjects[subject]) {
 					currentSubject = this.subjects[subject];
 				}
-				return currentSubject.marks.push(
-					new Mark(this.user.grade, Date.now(), subject, mark, info)
-				);
+				return currentSubject.marks.push(new Mark(this.user.grade, Date.now(), subject, mark, info));
 			}
 			return false;
 		},
@@ -376,14 +463,8 @@ const app = new Vue({
 				choice => {
 					if (!choice) return;
 					let mark = $("#mark-mark").value;
-					let info =
-						$("#mark-info").value ||
-						this.dateFormatter(new Date(), true);
-					if (!mark) {
-						$("#mark-mark").style.border = warn;
-					} else {
-						$("#mark-mark").style.border = "";
-					}
+					let info = $("#mark-info").value || this.dateFormatter(new Date(), true);
+					this.checkEmpty([$("#mark-mark")]);
 					if (!subject) {
 						$("#mark-subject").style.border = warn;
 					} else {
@@ -502,12 +583,7 @@ const app = new Vue({
 		},
 
 		styleComputer(bool) {
-			return (
-				"opacity:" +
-				(bool ? "1" : "0") +
-				";pointer-events:" +
-				(bool ? "auto" : "none")
-			);
+			return "opacity:" + (bool ? "1" : "0") + ";pointer-events:" + (bool ? "auto" : "none");
 		},
 
 		configSubject(key, value = false) {
@@ -545,11 +621,7 @@ const app = new Vue({
 						$("#subject-full-score").style.border = warn;
 						res = false;
 					}
-					if (
-						nk &&
-						nk != key &&
-						!Object.keys(this.subjects).includes(nk)
-					) {
+					if (nk && nk != key && !Object.keys(this.subjects).includes(nk)) {
 						this.subjects[nk] = this.subjects[key];
 						this.$delete(this.subjects, key);
 						$("#subject-id").style.border = "";
@@ -570,10 +642,7 @@ const app = new Vue({
 						},
 						15,
 						() => {
-							$("#subject-delete").style.filter =
-								"brightness(" +
-								(this.time.subject / 10 + 1) +
-								")";
+							$("#subject-delete").style.filter = "brightness(" + (this.time.subject / 10 + 1) + ")";
 							return false;
 						}
 					);
@@ -590,15 +659,14 @@ const app = new Vue({
 			if (!value) {
 				value = this.check[key];
 			}
+			const day = new Date(key).getDay();
 			this.confirm(
 				"查看详情",
 				`
 		    <span>时间</span>
-		    <input value="${key}" disabled="true" />
+		    <input value="${key} ${weekdays[day]}" disabled="true" />
 		    <span>情况</span>
-		    <input value="${
-				value === "future" ? "未来" : value ? "已签到" : "未签到"
-			}" disabled="true">
+		    <input value="${value === "future" ? "未来" : value ? "已签到" : "未签到"}" disabled="true">
 		  `
 			);
 		},
@@ -667,21 +735,17 @@ const app = new Vue({
 		},
 
 		clearData() {
-			this.confirm(
-				"清空数据",
-				"数据清空后无法恢复，是否继续?<br /><br />",
-				choice => {
-					if (choice) {
-						clearInterval(this.itv.DATA_SAVER);
-						window.removeEventListener("beforeunload", this.save);
-						localStorage[this.user.name] = "";
-						localStorage[this.user.name + "_USER"] = "";
-						localStorage[this.user.name + "_EXAM"] = "";
-						this.user.name = "default";
-						location = location;
-					}
+			this.confirm("清空数据", "数据清空后无法恢复，是否继续?<br /><br />", choice => {
+				if (choice) {
+					clearInterval(this.itv.DATA_SAVER);
+					window.removeEventListener("beforeunload", this.save);
+					localStorage[this.user.name] = "";
+					localStorage[this.user.name + "_USER"] = "";
+					localStorage[this.user.name + "_EXAM"] = "";
+					this.user.name = "default";
+					location = location;
 				}
-			);
+			});
 		},
 		changeGrade() {
 			this.user.grade++;
@@ -694,16 +758,24 @@ const app = new Vue({
 		},
 		loadChart() {
 			this.dataPreRenderer();
-			this.option.dataset.source = this.result;
-			this.chart.setOption(this.option);
-			delete this.option.legend.selected;
+			let option = this[this.current.type == "学科" ? "option" : "examOption"];
+			option.dataset.source = this.result;
+			this.chart.setOption(option);
+			if (option?.legend?.selected) {
+				delete option.legend.selected;
+			}
 		},
 		dataPreRenderer() {
-			this.result = this.subjects[this.current.subject].marks.filter(
-				mark => {
-					return mark.grade == this.user.grade;
-				}
-			);
+			switch (this.current.type) {
+				case "学科":
+					this.result = this.subjects[this.current.subject].marks.filter(mark => {
+						return mark.grade == this.user.grade;
+					});
+					break;
+				case "考试":
+					this.result = this.exams[this.current.exam].marks;
+					break;
+			}
 		},
 		createExam() {
 			this.confirm(
@@ -719,9 +791,7 @@ const app = new Vue({
 					const marks = table.getSelectedData();
 					let res = true;
 					if (name && marks.length > 0) {
-						this.exams.push(
-							new Exam(this.user.grade, Date.now(), marks, name)
-						);
+						this.exams.push(new Exam(this.user.grade, Date.now(), marks, name));
 					}
 					if (!name) {
 						$("#exam-name").style.border = warn;
@@ -784,6 +854,56 @@ const app = new Vue({
 					}
 				]
 			});
+		},
+		moreAboutMark(index) {
+			const mark = this.result[index];
+			const currentSubject = this.subjects[mark.subject];
+			const com = this.confirm(
+				"更多",
+				`
+		    <span>分数</span>
+		    <input type="number" value="${mark.mark}" id="mark-mark" />
+		    <br />
+		    
+		    <button class="fully" id="mark-delete">删除</button>
+		  `,
+				choice => {
+					if (!choice) return;
+					this.loadChart();
+				}
+			);
+			$("#mark-delete").addEventListener("touchstart", e => {
+				this.start(
+					"mark",
+					() => {
+						this.$delete(currentSubject.marks, currentSubject.marks.indexOf(mark));
+						com.cancel();
+						this.loadChart();
+					},
+					15,
+					() => {
+						$("#mark-delete").style.filter = "brightness(" + (this.time.mark / 10 + 1) + ")";
+						return false;
+					}
+				);
+			});
+			$("#mark-delete").addEventListener("touchend", () => {
+				this.stop("mark", () => {
+					$("#mark-delete").style.filter = "";
+				});
+			});
+		},
+		checkEmpty(arr, more = "value") {
+			let res = true;
+			arr.map(e => {
+				if (!e[more]) {
+					e.style.border = warn;
+					res = false;
+				} else {
+					e.style.border = "";
+				}
+			});
+			return res;
 		}
 	},
 	watch: {
@@ -795,6 +915,12 @@ const app = new Vue({
 			this.loadChart();
 		},
 		"current.subject"() {
+			this.loadChart();
+		},
+		"current.type"() {
+			this.loadChart();
+		},
+		"current.exam"() {
 			this.loadChart();
 		},
 		"pages.datas"(nv, ov) {

@@ -112,7 +112,7 @@ window.themes = {
 	}
 };
 
-warn = "2px solid #F79";
+warn = "1.5px solid #F79";
 
 window.icons = {
 	datas: "◔",
@@ -150,3 +150,5 @@ window.GET_GRADE_NAME = function (grade) {
 		return null;
 	}
 };
+
+const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
