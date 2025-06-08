@@ -20,9 +20,13 @@
 				<div id="pusher" :style="styleComputer(pages.pusher)" class="page">
 					<div id="check" class="block">
 						<div id="check-board">
-							<div v-for="(value, key) in check" class="check-board-box" :style="'background-color:' + (value ? (value === true ? 'var(--bg2)' : 'rgba(0,0,0,0)') : 'var(--bg2);opacity: 0.3')" @click="showCheck(key, value)"></div>
+							<div v-for="(value, key) in check" class="check-board-box"
+								:style="'background-color:' + (value ? (value === true ? 'var(--bg2)' : 'rgba(0,0,0,0)') : 'var(--bg2);opacity: 0.3')"
+								@click="showCheck(key, value)"></div>
 						</div>
-						<button id="check-check" class="fully" @touchstart="checkin" @touchend="stop('check')" :style="'box-shadow:0 0 ' + (5 + (time.check || 0)) + 'px var(--bg1);filter:brightness(' + (1 + (time.check || 0) / 10) + ') blur(' + (time.check || 0) / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'" :disabled="user.checked.includes(today)">签到</button>
+						<button id="check-check" class="fully" @touchstart="checkin" @touchend="stop('check')"
+							:style="'box-shadow:0 0 ' + (5 + (time.check || 0)) + 'px var(--bg1);filter:brightness(' + (1 + (time.check || 0) / 10) + ') blur(' + (time.check || 0) / 6 + 'px) grayscale(' + (user.checked.includes(today) ? 1 : 0) + ')'"
+							:disabled="user.checked.includes(today)">签到</button>
 					</div>
 					<div id="mark" class="block">
 						<div id="mark-msg">
@@ -58,27 +62,40 @@
 				<div id="datas" :style="styleComputer(pages.datas)" class="page">
 					<div id="topline">
 						<div class="dropdown">
-							<button class="btn btn-secondary dropdown-toggle chooser" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="grade-chooser">{{window.GET_GRADE_NAME(user.grade)}}年级</button>
+							<button class="btn btn-secondary dropdown-toggle chooser" type="button"
+								data-bs-toggle="dropdown" aria-expanded="false"
+								id="grade-chooser">{{window.GET_GRADE_NAME(user.grade)}}年级</button>
 							<ul class="dropdown-menu">
-								<li class="dropdown-item" v-for="(item, index) in window.grades" @click="(user.grade = index)">{{item}}</li>
+								<li class="dropdown-item" v-for="(item, index) in window.grades"
+									@click="(user.grade = index)">{{item}}</li>
 							</ul>
 						</div>
 						<div class="dropdown">
-							<button class="btn btn-secondary dropdown-toggle chooser" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="type-chooser" v-show="exams.length > 0">{{current.type}}</button>
+							<button class="btn btn-secondary dropdown-toggle chooser" type="button"
+								data-bs-toggle="dropdown" aria-expanded="false" id="type-chooser"
+								v-show="exams.length > 0">{{current.type}}</button>
 							<ul class="dropdown-menu">
-								<li class="dropdown-item" v-for="(item, index) in types" @click="(current.type = item)">{{item}}</li>
+								<li class="dropdown-item" v-for="(item, index) in types" @click="(current.type = item)">
+									{{item}}
+								</li>
 							</ul>
 						</div>
 						<div class="dropdown" v-if="current.type == '学科'">
-							<button class="btn btn-secondary dropdown-toggle chooser" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="subject-chooser">{{subjects[current.subject].name}}</button>
+							<button class="btn btn-secondary dropdown-toggle chooser" type="button"
+								data-bs-toggle="dropdown" aria-expanded="false"
+								id="subject-chooser">{{subjects[current.subject].name}}</button>
 							<ul class="dropdown-menu">
-								<li class="dropdown-item" v-for="(item, index) in subjects" @click="(current.subject = index)" v-if="item.enable">{{item.name}}</li>
+								<li class="dropdown-item" v-for="(item, index) in subjects"
+									@click="(current.subject = index)" v-if="item.enable">{{item.name}}</li>
 							</ul>
 						</div>
 						<div class="dropdown" v-if="current.type == '考试'">
-							<button class="btn btn-secondary dropdown-toggle chooser" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="exam-chooser">{{exams[current.exam].info}}</button>
+							<button class="btn btn-secondary dropdown-toggle chooser" type="button"
+								data-bs-toggle="dropdown" aria-expanded="false"
+								id="exam-chooser">{{exams[current.exam].info}}</button>
 							<ul class="dropdown-menu">
-								<li class="dropdown-item" v-for="(item, index) in exams" @click="(current.exam = index)">{{item.info}}</li>
+								<li class="dropdown-item" v-for="(item, index) in exams"
+									@click="(current.exam = index)">{{item.info}}</li>
 							</ul>
 						</div>
 					</div>
@@ -104,9 +121,16 @@
 				</div>
 			</div>
 			<div id="bottomline">
-				<button v-for="(value, key) in pages" :style="'width:' + 100 / Object.keys(pages).length + 'vw;' + (value && 'background-color:var(--bg2)')" :disabled="value" @click="changePage(key)">{{window.icons[key]}}</button>
+				<button v-for="(value, key) in pages"
+					:style="'width:' + 100 / Object.keys(pages).length + 'vw;' + (value && 'background-color:var(--bg2)')"
+					:disabled="value" @click="changePage(key)">{{window.icons[key]}}</button>
 			</div>
 			<div id="conf"></div>
+			<div id="loadPage" :style="styleComputer(!loaded)">
+				<button id="enter-button" class="fully"
+					:style="'filter: brightness(' + ((time.load / 10 || 0) + 1) + ') blur(' + (time.load || 0) + 'px);'"
+					@touchstart="startLoad">进入</button>
+			</div>
 		</div>
 		<script src="js/index.js"></script>
 	</body>

@@ -11,12 +11,15 @@
 	0% {
 		transform: scale(1);
 	}
+
 	40% {
 		transform: scale(0.96);
 	}
+
 	60% {
 		transform: scale(1.02);
 	}
+
 	100% {
 		transform: scale(1);
 	}
@@ -35,13 +38,16 @@
 
 /* 隐藏滚动条 */
 *::-webkit-scrollbar {
-	display: none; /* 隐藏滚动条 */
+	display: none;
+	/* 隐藏滚动条 */
 }
 
 /* 保留滚动功能 */
 * {
-	-ms-overflow-style: none; /* IE 和 Edge */
-	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none;
+	/* IE 和 Edge */
+	scrollbar-width: none;
+	/* Firefox */
 }
 
 html,
@@ -51,10 +57,11 @@ body,
 	margin: 0;
 	overflow: hidden;
 	background-color: var(--bg0);
+	scroll-behavior: smooth;
 }
 
 #app {
-  user-select: none;
+	user-select: none;
 }
 
 #conf {
@@ -168,14 +175,15 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	font-size: 20px;
 }
 
-#mark-msg, #exam-msg {
+#mark-msg,
+#exam-msg {
 	color: var(--c);
 	width: 100%;
 }
 
 #mark-msg b,
 .article b,
-#exam-msg b{
+#exam-msg b {
 	font-size: 125%;
 	text-shadow: 0 0 5px var(--bg2);
 	color: var(--c);
@@ -214,9 +222,12 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	margin-bottom: 5px;
 	padding: 1px;
 	overflow: hidden;
-	column-count: auto; /* 自动列数 */
-	column-width: 20px; /* 每列的宽度 */
-	column-gap: var(--check-box-margin); /* 列间距 */
+	column-count: auto;
+	/* 自动列数 */
+	column-width: 20px;
+	/* 每列的宽度 */
+	column-gap: var(--check-box-margin);
+	/* 列间距 */
 	direction: rtl;
 }
 
@@ -225,9 +236,12 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	width: 20px;
 	border-radius: 5px;
 	margin: 0;
-	background-color: lightblue; /* 示例背景色 */
-	break-inside: avoid; /* 防止元素被拆分到两列 */
-	margin-bottom: var(--check-box-margin); /* 底部间距 */
+	background-color: lightblue;
+	/* 示例背景色 */
+	break-inside: avoid;
+	/* 防止元素被拆分到两列 */
+	margin-bottom: var(--check-box-margin);
+	/* 底部间距 */
 }
 
 .switch {
@@ -266,11 +280,11 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	box-shadow: 0 0 3px var(--shadow);
 }
 
-.switch input:checked + .slider {
+.switch input:checked+.slider {
 	background-color: var(--bg2);
 }
 
-.switch input:checked + .slider:before {
+.switch input:checked+.slider:before {
 	transform: translateX(26px);
 }
 
@@ -350,7 +364,8 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 	height: 2em;
 }
 
-#subject-delete, #mark-delete {
+#subject-delete,
+#mark-delete {
 	height: 25px;
 	line-height: 25px;
 	font-size: 100%;
@@ -372,70 +387,86 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 }
 
 .chart {
-  height: calc(100vh - 30px);
-  width: 100vw;
-  position: fixed;
-  left: 0;
-  top: 0;
-  margin: 0;
-  padding: 0;
-  z-index: 0;
+	height: calc(100vh - 30px);
+	width: 100vw;
+	position: fixed;
+	left: 0;
+	top: 0;
+	margin: 0;
+	padding: 0;
+	z-index: 0;
 }
 
 .chooser {
-  position: relative;
-  z-index: 1;
-  background-color: var(--bg1);
+	position: relative;
+	z-index: 1;
+	background-color: var(--bg1);
 }
 
 .dropdown {
-  display: inline-block;
+	display: inline-block;
 }
 
-.chart-date, .chart-info {
-  color: var(--shadow);
-  font-size: 90%;
+.chart-date,
+.chart-info {
+	color: var(--shadow);
+	font-size: 90%;
 }
 
 .chart-color {
-  border-radius: 50%;
-  height: 0.8em;
-  width: 0.8em;
-  display: inline-block;
+	border-radius: 50%;
+	height: 0.8em;
+	width: 0.8em;
+	display: inline-block;
 }
 
 #topline {
-  height: 30px;
+	height: 30px;
 }
 
 .chart-add {
-  color: var(--shadow);
-  font-size: 3px;
-  background-color: rgba(0,0,0,0);
-  border: none;
-  box-shadow: 0 0 3px var(--shadow);
-  width: 20px;
-  height: 20px;
+	color: var(--shadow);
+	font-size: 3px;
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+	box-shadow: 0 0 3px var(--shadow);
+	width: 20px;
+	height: 20px;
 }
 
 #exam-table {
-  max-height: 75vh;
-  margin-bottom: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px var(--shadow);
-  border: none;
+	max-height: 75vh;
+	margin-bottom: 5px;
+	border-radius: 5px;
+	box-shadow: 0 0 5px var(--shadow);
+	border: none;
 }
 
 #pusher {
-  overflow: auto;
-  height: 100%;
+	overflow: auto;
+	height: 100%;
 }
 
 .tooltip-button {
-  background-color: rgba(0,0,0,0);
-  color: var(--shadow);
-  box-shadow: 0 0 3px var(--shadow);
-  height: 20px;
-  width: 20px;
-  line-height: 20px;
+	background-color: rgba(0, 0, 0, 0);
+	color: var(--shadow);
+	box-shadow: 0 0 3px var(--shadow);
+	height: 20px;
+	width: 20px;
+	line-height: 20px;
+}
+
+#loadPage {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	z-index: 999;
+	background-color: var(--bg0);
+}
+
+#enter-button {
+	position: fixed;
+	height: 100vh
 }
