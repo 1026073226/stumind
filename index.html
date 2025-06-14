@@ -86,7 +86,8 @@
 								id="subject-chooser">{{subjects[current.subject].name}}</button>
 							<ul class="dropdown-menu">
 								<li class="dropdown-item" v-for="(item, index) in subjects"
-									@click="(current.subject = index)" v-if="item.enable">{{item.name}}</li>
+									@click="(current.subject = index)" v-if="item.enable">{{item.name}}
+									</li>
 							</ul>
 						</div>
 						<div class="dropdown" v-if="current.type == '考试'">
@@ -95,7 +96,9 @@
 								id="exam-chooser">{{exams[current.exam].info}}</button>
 							<ul class="dropdown-menu">
 								<li class="dropdown-item" v-for="(item, index) in exams"
-									@click="(current.exam = index)">{{item.info}}</li>
+									@click="(current.exam = index)">{{item.info}}
+									<button class="exam-delete" @click="deleteExam(index)">×</button>
+									</li>
 							</ul>
 						</div>
 					</div>

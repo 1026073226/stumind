@@ -1,4 +1,4 @@
-const app = new Vue( {
+const app = new Vue({
 	el: "#app",
 	data: {
 		loaded: false,
@@ -10,7 +10,7 @@ const app = new Vue( {
 			type: "学科",
 			exam: 0
 		},
-		types: [ "学科", "考试" ],
+		types: ["学科", "考试"],
 		option: {
 			dataset: {
 				source: false
@@ -21,21 +21,57 @@ const app = new Vue( {
 			tooltip: {
 				triggerOn: "click",
 				enterable: true,
-				formatter( params ) {
-					return `
-			      <span class="chart-date">${app.dateFormatter(new Date(params.data.date))}</span>
+				formatter(params) {
+					if (
+						(params?.componentType != "series" || !params?.name) &&
+						!params?.data?.full
+					) {
+						params.data.special = params.seriesName;
+						params.data.date = app.today;
+					} else {
+						params.data.special = "normal";
+					}
+					let exc = {
+						雷达: `<span class="chart-info">${params.value.toString()}</span>`,
+						平均: `
+						平均 <b class="chart-mark">${params.value}</b>
+						<br />
+						方差 <b class="chart-mark">${app.varian(app.result, params.value)}</b>
+						`,
+						normal:
+							`
+			      <b class="chart-mark">${params.data.mark} / ${params.data.full}</b>
 			      <br />
-			      <div class="chart-color" style="background-color:${params.color}"></div>
-			      <b class="chart-mark">${params.data.mark}</b>
+			      ` +
+							(app.current.type == "考试"
+								? `
+			      <span class="chart-info">${params.data.name}</span>
 			      <br />
+			      `
+								: ``) +
+							`
 			      <span class="chart-info">${params.data.info}</span>
 			      <button class="tooltip-button" onclick="app.moreAboutMark(${params.dataIndex})">+</button>
 			      <button class="tooltip-button">◔</button>
-			    `;
+			    `
+					};
+					return (
+						`
+			      <span class="chart-date">${app.dateFormatter(
+						new Date(params.data.date)
+					)}</span>
+			      <br />
+			      ` +
+						(params.data.special !== "平均"
+							? `<div class="chart-color" style="background-color:${params.color}"></div>
+			      `
+							: "") +
+						exc[params.data.special]
+					);
 				}
 			},
 			legend: {
-				data: [ "条形", "折线", "散点", "平均" ],
+				data: ["条形", "折线", "散点", "平均"],
 				show: true,
 				top: 20,
 				left: "center",
@@ -46,11 +82,12 @@ const app = new Vue( {
 					平均: false
 				}
 			},
-			xAxis: [ {
+			xAxis: [
+				{
 					type: "category",
 					axisLabel: {
-						formatter( value ) {
-							const date = new Date( Number( value ) );
+						formatter(value) {
+							const date = new Date(Number(value));
 							return date.getMonth() + 1 + "-" + date.getDate();
 						}
 					}
@@ -65,7 +102,11 @@ const app = new Vue( {
 			yAxis: {
 				type: "value"
 			},
-			series: [ {
+			radar: {
+				indicator: []
+			},
+			series: [
+				{
 					name: "条形",
 					type: "bar",
 					encode: {
@@ -90,8 +131,8 @@ const app = new Vue( {
 						x: "date",
 						y: "mark"
 					},
-					symbolSize( data ) {
-						return data.mark / 2;
+					symbolSize(data) {
+						return data.mark / 10;
 					}
 				},
 				{
@@ -101,15 +142,22 @@ const app = new Vue( {
 						y: "mark"
 					},
 					markLine: {
-						symbol: [ "none", "none" ],
-						data: [ {
-							type: "average",
-							name: "平均"
-						} ]
+						symbol: ["none", "none"],
+						data: [
+							{
+								type: "average",
+								name: "平均"
+							}
+						]
 					},
 					xAxisIndex: 1
 				}
-			]
+			],
+			dataZoom: {
+				type: "inside",
+				xAxisIndex: 0,
+				startValue: ""
+			}
 		},
 		examOption: {
 			dataset: {
@@ -120,7 +168,7 @@ const app = new Vue( {
 			},
 			tooltip: {},
 			legend: {
-				data: [ "饼图", "条形", "散点", "平均" ],
+				data: ["饼图", "条形", "散点", "平均", "雷达"],
 				show: true,
 				top: 20,
 				left: "center",
@@ -128,13 +176,15 @@ const app = new Vue( {
 					饼图: true,
 					条形: false,
 					散点: false,
-					平均: false
+					平均: false,
+					雷达: false
 				}
 			},
-			xAxis: [ {
+			xAxis: [
+				{
 					type: "category",
 					axisLabel: {
-						formatter( value ) {
+						formatter(value) {
 							return value;
 						}
 					}
@@ -149,7 +199,11 @@ const app = new Vue( {
 			yAxis: {
 				type: "value"
 			},
-			series: [ {
+			radar: {
+				indicator: []
+			},
+			series: [
+				{
 					name: "饼图",
 					type: "pie",
 					encode: {
@@ -173,8 +227,8 @@ const app = new Vue( {
 						x: "name",
 						y: "mark"
 					},
-					symbolSize( data ) {
-						return data.mark;
+					symbolSize(data) {
+						return data.mark / 10;
 					}
 				},
 				{
@@ -184,13 +238,23 @@ const app = new Vue( {
 						y: "mark"
 					},
 					markLine: {
-						symbol: [ "none", "none" ],
-						data: [ {
-							type: "average",
-							name: "平均"
-						} ]
+						symbol: ["none", "none"],
+						data: [
+							{
+								type: "average",
+								name: "平均"
+							}
+						]
 					},
 					xAxisIndex: 1
+				},
+				{
+					name: "雷达",
+					type: "radar",
+					data: {
+						value: [99],
+						name: "好"
+					}
 				}
 			]
 		},
@@ -275,14 +339,16 @@ const app = new Vue( {
 	},
 	created() {
 		this.load();
-		for ( let key in this.subjects ) {
+		for (let key in this.subjects) {
 			this.current.subject = key;
 			break;
 		}
+		this.option.dataZoom.startValue = this.today;
 		this.examOption.tooltip.formatter = this.option.tooltip.formatter;
-		this.today = this.dateFormatter( new Date() );
-		window.addEventListener( "beforeunload", this.save );
-		this.itv.DATA_SAVER = setInterval( this.save, 1000 );
+		this.examOption.dataZoom = this.option.dataZoom;
+		this.today = this.dateFormatter(new Date());
+		window.addEventListener("beforeunload", this.save);
+		this.itv.DATA_SAVER = setInterval(this.save, 1000);
 		this.initCheck();
 	},
 	mounted() {
@@ -292,7 +358,8 @@ const app = new Vue( {
 			() => {
 				this.initAnima();
 				this.loadChart();
-			}, {
+			},
+			{
 				once: true
 			}
 		);
@@ -300,131 +367,149 @@ const app = new Vue( {
 	computed: {
 		marks() {
 			let n = [];
-			Object.values( this.subjects ).map( value => {
-				if ( value.marks ) {
-					value.marks.map( mark => {
-						if ( mark.grade == this.user.grade ) n.push( mark );
-					} );
+			Object.values(this.subjects).map(value => {
+				if (value.marks) {
+					value.marks.map(mark => {
+						if (mark.grade == this.user.grade) n.push(mark);
+					});
 				}
-			} );
+			});
 			return n;
 		}
 	},
 	methods: {
 		doCheck() {
-			this.user.checked.push( this.today );
-			this.check[ this.today ] = true;
+			this.user.checked.push(this.today);
+			this.check[this.today] = true;
 		},
 
 		checkin() {
-			this.start( "check", this.doCheck, 17, () => {
-				return this.user.checked.includes( this.today ) && this.time.check > 3;
-			} );
+			this.start("check", this.doCheck, 17, () => {
+				return (
+					this.user.checked.includes(this.today) &&
+					this.time.check > 3
+				);
+			});
 		},
 
-		setCssRoot( key, value ) {
-			return document.documentElement.style.setProperty( "--" + key, value );
+		setCssRoot(key, value) {
+			return document.documentElement.style.setProperty(
+				"--" + key,
+				value
+			);
 		},
 
-		dateFormatter( date, time = false ) {
-			if ( time ) {
+		dateFormatter(date, time = false) {
+			if (time) {
 				const hours = date.getHours(); // 时 (0-23)
 				const minutes = date.getMinutes(); // 分 (0-59)
 				const seconds = date.getSeconds(); // 秒 (0-59)
 
 				// 格式化为两位数（例如：01:05:09）
-				const formattedTime = [ hours.toString().padStart( 2, "0" ), minutes.toString().padStart( 2,
-					"0" ), seconds.toString().padStart( 2, "0" ) ].join( ":" );
+				const formattedTime = [
+					hours.toString().padStart(2, "0"),
+					minutes.toString().padStart(2, "0"),
+					seconds.toString().padStart(2, "0")
+				].join(":");
 				return formattedTime;
 			}
 			const year = date.getFullYear();
-			const month = String( date.getMonth() + 1 ).padStart( 2, "0" );
-			const day = String( date.getDate() ).padStart( 2, "0" );
+			const month = String(date.getMonth() + 1).padStart(2, "0");
+			const day = String(date.getDate()).padStart(2, "0");
 			const formattedDate = `${year}-${month}-${day}`;
 			return formattedDate;
 		},
 
 		initCheck() {
-			const width = $( "#check-board" ).clientWidth - 2;
+			const width = $("#check-board").clientWidth - 2;
 			const height = 140;
 			const size = height / 7;
-			const row = Math.floor( width / size ) - 1; // 计算可以显示的行数（周数）
-			const diff = ( width - row * size ) / row / 2; // 计算间距
+			const row = Math.floor(width / size) - 1; // 计算可以显示的行数（周数）
+			const diff = (width - row * size) / row / 2; // 计算间距
 			const number = row * 7; // 总天数
 			const today = new Date();
-			const weekStart = this.getWeekStart( today ); // 获取本周的第一天（周日）
+			const weekStart = this.getWeekStart(today); // 获取本周的第一天（周日）
 
-			this.setCssRoot( "check-box-margin", diff + "px" );
+			this.setCssRoot("check-box-margin", diff + "px");
 
-			for ( let i = 0; i < row; i++ ) {
+			for (let i = 0; i < row; i++) {
 				// 遍历每一行（每一周）
-				for ( let j = 0; j < 7; j++ ) {
+				for (let j = 0; j < 7; j++) {
 					// 遍历每一天
-					const date = new Date( weekStart );
-					date.setDate( weekStart.getDate() - i * 7 - j ); // 从本周的第一天开始，逐天递减
-					let formatted = this.dateFormatter( date );
-					if ( date <= today ) {
-						this.check[ formatted ] = this.user.checked.includes( formatted );
+					const date = new Date(weekStart);
+					date.setDate(weekStart.getDate() - i * 7 - j); // 从本周的第一天开始，逐天递减
+					let formatted = this.dateFormatter(date);
+					if (date <= today) {
+						this.check[formatted] =
+							this.user.checked.includes(formatted);
 					} else {
-						this.check[ formatted ] = "future";
+						this.check[formatted] = "future";
 					}
 				}
 			}
 		},
 
-		getWeekStart( obj ) {
-			let date = new Date( obj );
+		getWeekStart(obj) {
+			let date = new Date(obj);
 			const dayOfWeek = 6 - date.getDay(); // 获取当前日期是周几（0 表示周日，1 表示周一，依此类推）
 			const diff = date.getDate() + dayOfWeek; // 计算本周第一天（周日）的日期
-			date.setDate( diff );
+			date.setDate(diff);
 			return date;
 		},
 
 		initAnima() {
-			$( "button" ).forEach( e => {
-				e.addEventListener( "click", e => {
-					e.target.classList.add( "waving" );
-					setTimeout( () => {
-						e.target.classList.remove( "waving" );
-					}, 384 );
-				} );
-			} );
+			$("button").forEach(e => {
+				e.addEventListener("click", e => {
+					e.target.classList.add("waving");
+					setTimeout(() => {
+						e.target.classList.remove("waving");
+					}, 384);
+				});
+			});
 		},
 
 		setUser() {},
 
 		save() {
-			localStorage[ this.user.name ] = JSON.stringify( this.subjects );
-			localStorage[ this.user.name + "_USER" ] = JSON.stringify( this.user );
+			localStorage[this.user.name] = JSON.stringify(this.subjects);
+			localStorage[this.user.name + "_USER"] = JSON.stringify(this.user);
 			localStorage.current_USER = this.user.name;
-			localStorage[ this.user.name + "_EXAM" ] = JSON.stringify( this.exams );
+			localStorage[this.user.name + "_EXAM"] = JSON.stringify(this.exams);
 		},
 
 		load() {
-			if ( localStorage.current_USER ) this.user.name = localStorage.current_USER;
-			if ( localStorage[ this.user.name + "_USER" ] ) {
-				this.user = JSON.parse( localStorage[ this.user.name + "_USER" ] );
+			if (localStorage.current_USER)
+				this.user.name = localStorage.current_USER;
+			if (localStorage[this.user.name + "_USER"]) {
+				this.user = JSON.parse(localStorage[this.user.name + "_USER"]);
 			}
-			if ( localStorage[ this.user.name + "_EXAM" ] ) {
-				this.exams = JSON.parse( localStorage[ this.user.name + "_EXAM" ] );
+			if (localStorage[this.user.name + "_EXAM"]) {
+				this.exams = JSON.parse(localStorage[this.user.name + "_EXAM"]);
 			}
-			if ( localStorage[ this.user.name ] ) {
-				this.subjects = JSON.parse( localStorage[ this.user.name ] );
+			if (localStorage[this.user.name]) {
+				this.subjects = JSON.parse(localStorage[this.user.name]);
 			}
 		},
 
-		newSubject( key, name ) {
-			this.$set( this.subjects, key, this.subjectObj( name ) );
+		newSubject(key, name) {
+			this.$set(this.subjects, key, this.subjectObj(name));
 		},
 
-		newMark( subject, mark, info ) {
-			if ( subject && mark ) {
+		newMark(subject, mark, info, diff = 0) {
+			if (subject && mark) {
 				let currentSubject;
-				if ( this.subjects[ subject ] ) {
-					currentSubject = this.subjects[ subject ];
+				if (this.subjects[subject]) {
+					currentSubject = this.subjects[subject];
 				}
-				return currentSubject.marks.push( new Mark( this.user.grade, Date.now(), subject, mark,
-					info ) );
+				return currentSubject.marks.push(
+					new Mark(
+						this.user.grade,
+						Date.now() + diff,
+						subject,
+						mark,
+						info
+					)
+				);
 			}
 			return false;
 		},
@@ -445,51 +530,53 @@ const app = new Vue( {
         <input id="mark-info" placeholder="月考" />
         `,
 				choice => {
-					if ( !choice ) return;
-					let mark = $( "#mark-mark" ).value;
-					let info = $( "#mark-info" ).value || this.dateFormatter( new Date(), true );
-					this.checkEmpty( [ $( "#mark-mark" ) ] );
-					if ( !subject ) {
-						$( "#mark-subject" ).style.border = warn;
+					if (!choice) return;
+					let mark = $("#mark-mark").value;
+					let info =
+						$("#mark-info").value ||
+						this.dateFormatter(new Date(), true);
+					this.checkEmpty([$("#mark-mark")]);
+					if (!subject) {
+						$("#mark-subject").style.border = warn;
 					} else {
-						$( "#mark-subject" ).style.border = "";
+						$("#mark-subject").style.border = "";
 					}
-					if ( mark && subject ) {
-						if ( mark > this.subjects[ subject ].full ) {
-							$( "#mark-mark" ).style.border = warn;
+					if (mark && subject) {
+						if (Number(mark) > this.subjects[subject].full) {
+							$("#mark-mark").style.border = warn;
 							return false;
 						}
-						res = this.newMark( subject, mark, info );
+						res = this.newMark(subject, mark, info);
 					} else {
 						return false;
 					}
 				}
 			);
-			let keys = Object.keys( this.subjects ).filter( key => {
-				return this.subjects[ key ].enable;
-			} );
-			for ( let i = 0; i < keys.length; i++ ) {
-				let key = keys[ i ];
-				const button = document.createElement( "button" );
+			let keys = Object.keys(this.subjects).filter(key => {
+				return this.subjects[key].enable;
+			});
+			for (let i = 0; i < keys.length; i++) {
+				let key = keys[i];
+				const button = document.createElement("button");
 				button.className = "mark-subject-button";
-				button.innerText = this.subjects[ key ].name;
-				if ( i === keys.length - 1 ) {
+				button.innerText = this.subjects[key].name;
+				if (i === keys.length - 1) {
 					button.style.border = "none";
 				}
-				$( "#mark-subject" )
-					.appendChild( button )
-					.addEventListener( "click", e => {
+				$("#mark-subject")
+					.appendChild(button)
+					.addEventListener("click", e => {
 						subject = key;
 						e.target.style.backgroundColor = "var(--bg0)";
-						if ( lastone ) {
+						if (lastone) {
 							lastone.style.backgroundColor = "";
 						}
-						if ( lastone == e.target ) {
+						if (lastone == e.target) {
 							lastone = null;
 						} else {
 							lastone = e.target;
 						}
-					} );
+					});
 			}
 			return res;
 		},
@@ -506,16 +593,16 @@ const app = new Vue( {
         <input id="subject-name" placeholder="数学" />
         `,
 				choice => {
-					if ( !choice ) return;
-					let id = $( "#subject-id" ).value;
-					let name = $( "#subject-name" ).value;
-					if ( !id ) {
+					if (!choice) return;
+					let id = $("#subject-id").value;
+					let name = $("#subject-name").value;
+					if (!id) {
 						id = Date.now();
 					}
-					if ( name ) {
-						res = this.newSubject( id, name );
+					if (name) {
+						res = this.newSubject(id, name);
 					} else {
-						$( "#subject-name" ).style.border = warn;
+						$("#subject-name").style.border = warn;
 						return false;
 					}
 				}
@@ -523,7 +610,7 @@ const app = new Vue( {
 			return res;
 		},
 
-		subjectObj( name ) {
+		subjectObj(name) {
 			return {
 				name: name,
 				marks: [],
@@ -535,13 +622,13 @@ const app = new Vue( {
 		confirm(
 			msg,
 			innerHTML = "",
-			f = function() {
+			f = function () {
 				return true;
 			},
 			ym = "确认",
 			nm = "取消"
 		) {
-			let t = $( "#conf" );
+			let t = $("#conf");
 			t.innerHTML = `
       <p>${msg}</p>
       ${innerHTML}
@@ -551,31 +638,36 @@ const app = new Vue( {
 			t.style.opacity = 0.9;
 			t.style.pointerEvents = "all";
 			let cancel = () => {
-				f( false );
+				f(false);
 				t.style.opacity = 0;
 				t.style.pointerEvents = "none";
 			};
 			let yeah = () => {
-				if ( f( true ) !== false ) {
+				if (f(true) !== false) {
 					t.style.opacity = 0;
 					t.style.pointerEvents = "none";
 				}
 			};
-			t.querySelectorAll( ".menuBtn" )[ 0 ].addEventListener( "click", yeah );
-			t.querySelectorAll( ".menuBtn" )[ 1 ].addEventListener( "click", cancel );
+			t.querySelectorAll(".menuBtn")[0].addEventListener("click", yeah);
+			t.querySelectorAll(".menuBtn")[1].addEventListener("click", cancel);
 			return {
 				cancel: cancel,
 				confirm: yeah
 			};
 		},
 
-		styleComputer( bool ) {
-			return "opacity:" + ( bool ? "1" : "0" ) + ";pointer-events:" + ( bool ? "auto" : "none" );
+		styleComputer(bool) {
+			return (
+				"opacity:" +
+				(bool ? "1" : "0") +
+				";pointer-events:" +
+				(bool ? "auto" : "none")
+			);
 		},
 
-		configSubject( key, value = false ) {
-			if ( !value ) {
-				value = this.subjects[ key ];
+		configSubject(key, value = false) {
+			if (!value) {
+				value = this.subjects[key];
 			}
 			let com = this.confirm(
 				"设置学科",
@@ -589,181 +681,253 @@ const app = new Vue( {
 		    <button id="subject-delete" class="fully">删除</button>
 		  `,
 				choice => {
-					if ( !choice ) return;
+					if (!choice) return;
 					let res = true;
-					let nk = $( "#subject-id" ).value;
-					let kn = $( "#subject-keyname" ).value;
-					let fl = $( "#subject-full-score" ).value;
-					if ( kn ) {
+					let nk = $("#subject-id").value;
+					let kn = $("#subject-keyname").value;
+					let fl = $("#subject-full-score").value;
+					if (kn) {
 						value.name = kn;
-						$( "#subject-keyname" ).style.border = "";
-					} else if ( !kn ) {
-						$( "#subject-keyname" ).style.border = warn;
+						$("#subject-keyname").style.border = "";
+					} else if (!kn) {
+						$("#subject-keyname").style.border = warn;
 						res = false;
 					}
-					if ( fl ) {
+					if (fl) {
 						value.full = fl;
-						$( "#subject-full-score" ).style.border = "";
-					} else if ( !fl ) {
-						$( "#subject-full-score" ).style.border = warn;
+						$("#subject-full-score").style.border = "";
+					} else if (!fl) {
+						$("#subject-full-score").style.border = warn;
 						res = false;
 					}
-					if ( nk && nk != key && !Object.keys( this.subjects ).includes( nk ) ) {
-						this.subjects[ nk ] = this.subjects[ key ];
-						this.$delete( this.subjects, key );
-						$( "#subject-id" ).style.border = "";
-					} else if ( nk != key ) {
-						$( "#subject-id" ).style.border = warn;
+					if (
+						nk &&
+						nk != key &&
+						!Object.keys(this.subjects).includes(nk)
+					) {
+						this.subjects[nk] = this.subjects[key];
+						this.$delete(this.subjects, key);
+						$("#subject-id").style.border = "";
+					} else if (nk != key) {
+						$("#subject-id").style.border = warn;
 						res = false;
 					}
 					return res;
 				}
 			);
-			setTimeout( () => {
-				$( "#subject-delete" ).addEventListener( "touchstart", () => {
+			setTimeout(() => {
+				$("#subject-delete").addEventListener("touchstart", () => {
 					this.start(
 						"subject",
 						() => {
-							this.$delete( this.subjects, key );
+							this.$delete(this.subjects, key);
 							com.cancel();
 						},
 						15,
 						() => {
-							$( "#subject-delete" ).style.filter = "brightness(" + ( this
-								.time.subject / 10 + 1 ) + ")";
+							$("#subject-delete").style.filter =
+								"brightness(" +
+								(this.time.subject / 10 + 1) +
+								")";
 							return false;
 						}
 					);
-				} );
-				$( "#subject-delete" ).addEventListener( "touchend", () => {
-					this.stop( "subject", () => {
-						$( "#subject-delete" ).style.filter = "";
-					} );
-				} );
-			}, 384 );
+				});
+				$("#subject-delete").addEventListener("touchend", () => {
+					this.stop("subject", () => {
+						$("#subject-delete").style.filter = "";
+					});
+				});
+			}, 384);
 		},
 
-		showCheck( key, value = false ) {
-			if ( !value ) {
-				value = this.check[ key ];
+		showCheck(key, value = false) {
+			if (!value) {
+				value = this.check[key];
 			}
-			const day = new Date( key ).getDay();
+			const day = new Date(key).getDay();
 			this.confirm(
 				"查看详情",
 				`
 		    <span>时间</span>
 		    <input value="${key} ${weekdays[day]}" disabled="true" />
 		    <span>情况</span>
-		    <input value="${value === "future" ? "未来" : value ? "已签到" : "未签到"}" disabled="true">
+		    <input value="${
+				value === "future" ? "未来" : value ? "已签到" : "未签到"
+			}" disabled="true">
 		  `
 			);
 		},
 
-		changeTheme( key ) {
-			let theme = themes[ key ];
-			if ( theme ) {
-				for ( let key in theme.style ) {
-					this.setCssRoot( key, theme.style[ key ] );
+		changeTheme(key) {
+			let theme = themes[key];
+			if (theme) {
+				for (let key in theme.style) {
+					this.setCssRoot(key, theme.style[key]);
 				}
 			}
 		},
 
-		changePage( key ) {
-			for ( let page in this.pages ) {
-				this.pages[ page ] = false;
+		changePage(key) {
+			for (let page in this.pages) {
+				this.pages[page] = false;
 			}
-			this.pages[ key ] = true;
+			this.pages[key] = true;
 		},
 
-		nextTheme( key ) {
-			let keys = Object.keys( themes );
-			let i = keys.indexOf( key );
-			if ( i < keys.length - 1 ) {
+		nextTheme(key) {
+			let keys = Object.keys(themes);
+			let i = keys.indexOf(key);
+			if (i < keys.length - 1) {
 				i++;
 			} else {
 				i = 0;
 			}
-			this.user.theme = keys[ i ];
+			this.user.theme = keys[i];
 		},
 
 		start(
 			n,
 			d,
 			t = 15,
-			f = function() {
+			f = function () {
 				return false;
 			}
 		) {
-			this.$set( this.time, n, 0 );
+			this.$set(this.time, n, 0);
 			this.$set(
 				this.itv,
 				n,
-				setInterval( () => {
-					if ( f() ) {
+				setInterval(() => {
+					if (f()) {
 						return;
 					}
-					this.$set( this.time, n, this.time[ n ] + 1 );
-					if ( this.time[ n ] > t ) {
+					this.$set(this.time, n, this.time[n] + 1);
+					if (this.time[n] > t) {
 						d();
-						this.stop( n );
+						this.stop(n);
 					}
-				}, 100 )
+				}, 100)
 			);
 		},
 
 		stop(
 			n,
-			f = function() {
+			f = function () {
 				return;
 			}
 		) {
 			f();
-			clearInterval( this.itv[ n ] );
-			this.$set( this.time, n, 0 );
+			clearInterval(this.itv[n]);
+			this.$set(this.time, n, 0);
 		},
 
 		clearData() {
-			this.confirm( "清空数据", "数据清空后无法恢复，是否继续?<br /><br />", choice => {
-				if ( choice ) {
-					clearInterval( this.itv.DATA_SAVER );
-					window.removeEventListener( "beforeunload", this.save );
-					localStorage[ this.user.name ] = "";
-					localStorage[ this.user.name + "_USER" ] = "";
-					localStorage[ this.user.name + "_EXAM" ] = "";
-					this.user.name = "default";
-					location = location;
+			this.confirm(
+				"清空数据",
+				"数据清空后无法恢复，是否继续?<br /><br />",
+				choice => {
+					if (choice) {
+						clearInterval(this.itv.DATA_SAVER);
+						window.removeEventListener("beforeunload", this.save);
+						localStorage[this.user.name] = "";
+						localStorage[this.user.name + "_USER"] = "";
+						localStorage[this.user.name + "_EXAM"] = "";
+						this.user.name = "default";
+						location = location;
+					}
 				}
-			} );
+			);
 		},
 		changeGrade() {
 			this.user.grade++;
-			if ( !GET_GRADE_NAME( this.user.grade ) ) {
+			if (!GET_GRADE_NAME(this.user.grade)) {
 				this.user.grade = 0;
 			}
 		},
 		initChart() {
-			this.chart = echarts.init( $( "#data-bar" ) );
+			this.chart = echarts.init($("#data-bar"));
+			this.chart.on("legendselectchanged", e => {
+				this.loadChart(e.selected["雷达"]);
+			});
 		},
-		loadChart() {
+		loadChart(e = "common") {
 			this.dataPreRenderer();
-			let option = this[ this.current.type == "学科" ? "option" : "examOption" ];
+			let option =
+				this[this.current.type == "学科" ? "option" : "examOption"];
 			option.dataset.source = this.result;
-			this.chart.setOption( option );
-			if ( option?.legend?.selected ) {
+			if (e === false) {
+				option.radar.indicator = [];
+				option.series[4].data = [];
+			} else if (e === true) {
+				let ind = [];
+				let data = [];
+				this.result.map(mark => {
+					ind.push({
+						name: mark.name,
+						max: mark.full
+					});
+					data.push(mark.value);
+				});
+				option.radar.indicator = ind;
+				option.series[4].data = [
+					{
+						value: data
+					}
+				];
+			}
+
+			this.chart.setOption(option);
+			if (option?.legend?.selected) {
 				delete option.legend.selected;
 			}
 		},
+
+		refresh(obj) {
+			obj.map(that => {
+				const subjectObj = this.subjects[that.subject];
+				that.name = subjectObj.name;
+				that.value = that.mark;
+				that.full = subjectObj.full;
+			});
+		},
+
+		randMark(subject, n = 20) {
+			const subjectObj =
+				this.subjects[subject] ||
+				this.subjects[Object.keys(this.subjects)[0]];
+			const max = subjectObj.full;
+			for (let i = 0; i < n; i++) {
+				let r = this.randint(max - 10, max);
+				subjectObj.marks.push(this.newMark(subject, r, "rand", i));
+			}
+			return subjectObj;
+		},
+
+		randint(min, max) {
+			if (min > max) {
+				let temp = max;
+				max = min;
+				min = temp;
+			}
+			let c = max - min + 1;
+			return Math.floor(Math.random() * c + min);
+		},
+
 		dataPreRenderer() {
-			switch ( this.current.type ) {
+			switch (this.current.type) {
 				case "学科":
-					this.result = this.subjects[ this.current.subject ].marks.filter( mark => {
+					this.result = this.subjects[
+						this.current.subject
+					].marks.filter(mark => {
 						return mark.grade == this.user.grade;
-					} );
+					});
 					break;
 				case "考试":
-					this.result = this.exams[ this.current.exam ].marks;
+					this.result = this.exams[this.current.exam].marks;
 					break;
 			}
+			this.refresh(this.result);
 		},
 		createExam() {
 			this.confirm(
@@ -774,36 +938,39 @@ const app = new Vue( {
 		    <input id="exam-name" placeholder="月考" />
 		  `,
 				choice => {
-					if ( !choice ) return;
-					const name = $( "#exam-name" ).value;
+					if (!choice) return;
+					const name = $("#exam-name").value;
 					const marks = table.getSelectedData();
 					let res = true;
-					if ( name && marks.length > 0 ) {
-						this.exams.push( new Exam( this.user.grade, Date.now(), marks, name ) );
+					if (name && marks.length > 0) {
+						this.exams.push(
+							new Exam(this.user.grade, Date.now(), marks, name)
+						);
 					}
-					if ( !name ) {
-						$( "#exam-name" ).style.border = warn;
+					if (!name) {
+						$("#exam-name").style.border = warn;
 						res = false;
 					} else {
-						$( "#exam-name" ).style.border = "";
+						$("#exam-name").style.border = "";
 					}
-					if ( marks.length < 1 ) {
-						$( "#exam-table" ).style.border = warn;
+					if (marks.length < 1) {
+						$("#exam-table").style.border = warn;
 						res = false;
 					} else {
-						$( "#exam-table" ).style.border = "";
+						$("#exam-table").style.border = "";
 					}
 					return res;
 				}
 			);
-			const table = new Tabulator( "#exam-table", {
+			const table = new Tabulator("#exam-table", {
 				data: this.marks,
-				columns: [ {
+				columns: [
+					{
 						title: "选择",
 						formatter: "rowSelection",
 						headerSort: false,
 						resizable: false,
-						cellClick( e, cell ) {
+						cellClick(e, cell) {
 							cell.getRow().toggleSelect();
 						},
 						selectable: true,
@@ -813,9 +980,9 @@ const app = new Vue( {
 					{
 						title: "学科",
 						field: "subject",
-						formatter( cell ) {
+						formatter(cell) {
 							let v = cell.getValue();
-							return app.subjects[ v ].name;
+							return app.subjects[v].name;
 						},
 						resizable: false
 					},
@@ -832,19 +999,19 @@ const app = new Vue( {
 					{
 						title: "日期",
 						field: "date",
-						formatter( cell ) {
+						formatter(cell) {
 							let v = cell.getValue();
-							const date = new Date( v );
-							return app.dateFormatter( date );
+							const date = new Date(v);
+							return app.dateFormatter(date);
 						},
 						resizable: false
 					}
 				]
-			} );
+			});
 		},
-		moreAboutMark( index ) {
-			const mark = this.result[ index ];
-			const currentSubject = this.subjects[ mark.subject ];
+		moreAboutMark(index) {
+			const mark = this.result[index];
+			const currentSubject = this.subjects[mark.subject];
 			const com = this.confirm(
 				"更多",
 				`
@@ -852,68 +1019,88 @@ const app = new Vue( {
 		    <input type="number" value="${mark.mark}" id="mark-mark" />
 		    <br />
 		    <span>日期</span>
-			<input type="date" value="${this.dateFormatter(new Date(mark.date))}" id="mark-date" max="${this.today}" />
+			<input type="date" value="${this.dateFormatter(
+				new Date(mark.date)
+			)}" id="mark-date" max="${this.today}" />
 			<br />
 		    <button class="fully" id="mark-delete">删除</button>
 		  `,
 				choice => {
-					if ( !choice ) return;
+					if (!choice) return;
 					let res = true;
-					const marke = $( "#mark-mark" );
-					const date = $( "#mark-date" );
-					res = this.checkEmpty( [ marke, date ] );
-					if ( res ) {
-						mark.date = new Date( date.value ).getTime();
-						mark.mark = marke.value;
+					const marke = $("#mark-mark");
+					const date = $("#mark-date");
+					res = this.checkEmpty([marke, date]);
+					if (res) {
+						this.$set(mark, "date", new Date(date.value).getTime());
+						this.$set(mark, "mark", marke.value);
 						this.loadChart();
 					}
 					return res;
 				}
 			);
-			$( "#mark-delete" ).addEventListener( "touchstart", e => {
+			$("#mark-delete").addEventListener("touchstart", e => {
 				this.start(
 					"mark",
 					() => {
-						this.$delete( currentSubject.marks, currentSubject.marks.indexOf( mark ) );
+						this.$delete(
+							currentSubject.marks,
+							currentSubject.marks.indexOf(mark)
+						);
 						com.cancel();
 						this.loadChart();
 					},
 					15,
 					() => {
-						$( "#mark-delete" ).style.filter = "brightness(" + ( this.time.mark / 10 +
-							1 ) + ")";
+						$("#mark-delete").style.filter =
+							"brightness(" + (this.time.mark / 10 + 1) + ")";
 						return false;
 					}
 				);
-			} );
-			$( "#mark-delete" ).addEventListener( "touchend", () => {
-				this.stop( "mark", () => {
-					$( "#mark-delete" ).style.filter = "";
-				} );
-			} );
+			});
+			$("#mark-delete").addEventListener("touchend", () => {
+				this.stop("mark", () => {
+					$("#mark-delete").style.filter = "";
+				});
+			});
 		},
-		checkEmpty( arr, more = "value" ) {
+		checkEmpty(arr, more = "value") {
 			let res = true;
-			arr.map( e => {
-				if ( !e[ more ] ) {
+			arr.map(e => {
+				if (!e[more]) {
 					e.style.border = warn;
 					res = false;
 				} else {
 					e.style.border = "";
 				}
-			} );
+			});
 			return res;
 		},
 		startLoad() {
-			this.start( "load", () => {
+			this.start("load", () => {
 				this.loaded = true;
-			} );
+			});
 		},
+		deleteExam(index) {
+			this.confirm("删除考试", `确认删除这场考试吗?`, choice => {
+				if (!choice) return;
+				this.$delete(this.exams, index);
+			});
+		},
+		varian(arr, avg) {
+			let sum = 0;
+			avg = Number(avg);
+			arr.map(n => {
+				n = Number(n.mark);
+				sum += Math.pow(Math.abs(n - avg), 2);
+			});
+			return sum.toFixed(1);
+		}
 	},
 	watch: {
-		"user.theme"( nv, ov ) {
-			if ( ov == nv ) return;
-			this.changeTheme( nv );
+		"user.theme"(nv, ov) {
+			if (ov == nv) return;
+			this.changeTheme(nv);
 		},
 		"user.grade"() {
 			this.loadChart();
@@ -925,10 +1112,10 @@ const app = new Vue( {
 			this.loadChart();
 		},
 		"current.exam"() {
-			this.loadChart();
+			this.loadChart(this.chart.getOption().legend[0].selected["雷达"]);
 		},
-		"pages.datas"( nv, ov ) {
-			if ( nv ) this.loadChart();
+		"pages.datas"(nv, ov) {
+			if (nv) this.loadChart();
 		}
 	}
-} );
+});

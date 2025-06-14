@@ -74,7 +74,6 @@ body,
 	color: var(--c);
 	transform: translate(50%, -50%);
 	background-color: var(--bg1);
-	backdrop-filter: blur(5px);
 	padding: 5px;
 	border-radius: 5px;
 	box-shadow: 0 0 10px var(--shadow);
@@ -82,6 +81,7 @@ body,
 	overflow: auto;
 	pointer-events: none;
 	z-index: 99999;
+	backdrop-filter: blur(5px);
 }
 
 #conf p {
@@ -409,8 +409,13 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 
 .chart-date,
 .chart-info {
+  display: inline-block;
 	color: var(--shadow);
 	font-size: 90%;
+	max-width: 30vw;
+	overflow-x: auto;
+	height: 0.8em;
+	line-height: 0.8em;
 }
 
 .chart-color {
@@ -469,4 +474,12 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
 #enter-button {
 	position: fixed;
 	height: 100vh
+}
+
+.exam-delete {
+  text-shadow: 0 0 3px var(--shadow);
+  box-shadow: none;
+  float: right;
+  width: 20px;
+  text-align: right;
 }

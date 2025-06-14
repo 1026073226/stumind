@@ -6,8 +6,10 @@ class Mark {
 		this.mark = mark;
 		this.info = info;
 		this.part = {};
-		this.name = app.subjects[this.subject].name;
+		const subjectObj = app.subjects[this.subject];
+		this.name = subjectObj.name;
 		this.value = this.mark;
+		this.full = subjectObj.full;
 	}
 
 	getPartProp(name) {
@@ -21,6 +23,7 @@ class Mark {
 			return this.mark / full;
 		}
 	}
+
 }
 
 class Exam {
@@ -29,15 +32,10 @@ class Exam {
 		this.date = date;
 		this.marks = marks;
 		this.info = info;
-		this.part = {};
-		this.marks.map(mark => {
-		  if(!this.part[mark.subject]) this.part[mark.subject] = 0;
-		  this.part[mark.subject] += mark.mark;
-		});
 	}
 
 	add(mark) {
-	  return this.marks.push(mark);
+		return this.marks.push(mark);
 	}
 }
 
@@ -112,7 +110,7 @@ window.themes = {
 	}
 };
 
-warn = "1.5px solid #F79";
+warn = "2px solid #F79";
 
 window.icons = {
 	datas: "◔",
@@ -151,4 +149,17 @@ window.GET_GRADE_NAME = function (grade) {
 	}
 };
 
-const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+window.gradeTempo = {
+	mid: {
+		ch: { name: "语文", marks: [], enable: true, full: "120" },
+		ma: { name: "数学", marks: [], enable: true, full: "120" },
+		en: { name: "英语", marks: [], enable: true, full: "120" },
+		ph: { name: "物理", marks: [], enable: true, full: "100" },
+		chm: { name: "化学", marks: [], enable: true, full: 100 },
+		bi: { name: "生物", marks: [], enable: true, full: "60" },
+		his: { name: "历史", marks: [], enable: true, full: "75" },
+		geo: { name: "地理", marks: [], enable: true, full: "60" },
+		pol: { name: "政治", marks: [], enable: true, full: "75" },
+		pe: { name: "体育", marks: [], enable: true, full: "60" }
+	}
+};
