@@ -1,15 +1,44 @@
 class Mark {
 	constructor(grade, date, subject, mark, info) {
-		this.grade = grade;
-		this.date = date;
-		this.subject = subject;
-		this.mark = mark;
-		this.info = info;
-		this.part = {};
-		const subjectObj = app.subjects[this.subject];
-		this.name = subjectObj.name;
-		this.value = this.mark;
-		this.full = subjectObj.full;
+		if (typeof grade == "object") {
+			this.grade = grade.grade;
+			this.date = grade.date;
+			this.subject = grade.subject;
+			this.mark = grade.mark;
+			this.info = grade.info;
+			this.part = grade.part;
+		} else {
+			this.grade = grade;
+			this.date = date;
+			this.subject = subject;
+			this.mark = mark;
+			this.info = info;
+			this.part = {};
+		}
+		this.subjectObj = app.subjects[this.subject];
+	}
+
+	get full() {
+		return this.subjectObj.full;
+	}
+
+	get value() {
+		return this.mark;
+	}
+
+	get name() {
+		return this.subjectObj.name;
+	}
+
+	get data() {
+		return {
+			grade: this.grade,
+			date: this.date,
+			subject: this.subject,
+			mark: this.mark,
+			info: this.info,
+			part: this.part
+		};
 	}
 
 	getPartProp(name) {
@@ -17,13 +46,6 @@ class Mark {
 			return this.part[name].mark / this.mark;
 		}
 	}
-
-	getMarkProp(full) {
-		if (this.mark) {
-			return this.mark / full;
-		}
-	}
-
 }
 
 class Exam {
@@ -163,3 +185,5 @@ window.gradeTempo = {
 		pe: { name: "体育", marks: [], enable: true, full: "60" }
 	}
 };
+
+const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];

@@ -1,6 +1,7 @@
-const app = new Vue({
+new Vue({
 	el: "#app",
 	data: {
+		dataManager: false,
 		loaded: false,
 		today: "",
 		check: {},
@@ -31,12 +32,15 @@ const app = new Vue({
 					} else {
 						params.data.special = "normal";
 					}
+					const n = app.varian(app.result, params.value);
 					let exc = {
 						雷达: `<span class="chart-info">${params.value.toString()}</span>`,
 						平均: `
 						平均 <b class="chart-mark">${params.value}</b>
+						方差 <b class="chart-mark">${n.va}</b>
 						<br />
-						方差 <b class="chart-mark">${app.varian(app.result, params.value)}</b>
+						最高 <b class="chart-mark">${n.max}</b>
+						最低 <b class="chart-mark">${n.min}</b>
 						`,
 						normal:
 							`
@@ -338,6 +342,7 @@ const app = new Vue({
 		chart: false
 	},
 	created() {
+		window.app = this;
 		this.load();
 		for (let key in this.subjects) {
 			this.current.subject = key;
@@ -348,15 +353,16 @@ const app = new Vue({
 		this.examOption.dataZoom = this.option.dataZoom;
 		this.today = this.dateFormatter(new Date());
 		window.addEventListener("beforeunload", this.save);
-		this.itv.DATA_SAVER = setInterval(this.save, 1000);
 		this.initCheck();
 	},
 	mounted() {
 		this.initChart();
+		this.itv.DATA_SAVER = setInterval(this.save, 1000);
 		window.addEventListener(
 			"load",
 			() => {
 				this.initAnima();
+				this.initTable();
 				this.loadChart();
 			},
 			{
@@ -378,6 +384,63 @@ const app = new Vue({
 		}
 	},
 	methods: {
+		initTable() {
+			this.dataManager = new Tabulator("#data-manager-table", {
+				data: this.marks,
+				columns: [
+					{
+						title: "年级",
+						field: "grade",
+						formatter(cell) {
+							return GET_GRADE_NAME(cell.getValue());
+						},
+						resizable: false
+					},
+					{
+						title: "学科",
+						field: "subject",
+						formatter(cell) {
+							let v = cell.getValue();
+							return app.subjects[v].name;
+						},
+						resizable: false,
+						headerFilter: "input",
+						headerFilterFunc: function (
+							filterValue,
+							rowValue,
+							rowData,
+							cell
+						) {
+							const formattedValue = cell.getFormattedValue();
+							return formattedValue
+								.toLowerCase()
+								.includes(filterValue.toLowerCase());
+						}
+					},
+					{
+						title: "分数",
+						field: "mark",
+						resizable: false,
+						headerFilter: "number"
+					},
+					{
+						title: "信息",
+						field: "info",
+						resizable: false
+					},
+					{
+						title: "日期",
+						field: "date",
+						formatter(cell) {
+							let v = cell.getValue();
+							const date = new Date(v);
+							return app.dateFormatter(date);
+						},
+						resizable: false
+					}
+				]
+			});
+		},
 		doCheck() {
 			this.user.checked.push(this.today);
 			this.check[this.today] = true;
@@ -470,8 +533,39 @@ const app = new Vue({
 
 		setUser() {},
 
+		serialSubjects(subjects) {
+			const subjectsToSave = JSON.parse(JSON.stringify(subjects));
+			Object.keys(subjectsToSave).map(subjectName => {
+				const subject = subjectsToSave[subjectName];
+				if (subjects[subjectName].marks) {
+					const proMarks = [];
+					subjects[subjectName].marks.map(mark => {
+						proMarks.push(mark.data);
+					});
+					subject.marks = proMarks;
+				}
+			});
+			return subjectsToSave;
+		},
+
+		parseSubjects(subjects) {
+			const subjectsToSave = subjects;
+			Object.keys(subjectsToSave).map(subjectName => {
+				const subject = subjectsToSave[subjectName];
+				if (subject.marks) {
+					subject.marks = subject.marks.map(mark => new Mark(mark));
+					Object.defineProperty(subject, "marks", {
+						enumerable: false
+					});
+				}
+			});
+			return subjectsToSave;
+		},
+
 		save() {
-			localStorage[this.user.name] = JSON.stringify(this.subjects);
+			localStorage[this.user.name] = JSON.stringify(
+				this.serialSubjects(this.subjects)
+			);
 			localStorage[this.user.name + "_USER"] = JSON.stringify(this.user);
 			localStorage.current_USER = this.user.name;
 			localStorage[this.user.name + "_EXAM"] = JSON.stringify(this.exams);
@@ -488,6 +582,7 @@ const app = new Vue({
 			}
 			if (localStorage[this.user.name]) {
 				this.subjects = JSON.parse(localStorage[this.user.name]);
+				this.parseSubjects(this.subjects);
 			}
 		},
 
@@ -883,12 +978,15 @@ const app = new Vue({
 			}
 		},
 
-		refresh(obj) {
-			obj.map(that => {
-				const subjectObj = this.subjects[that.subject];
-				that.name = subjectObj.name;
-				that.value = that.mark;
-				that.full = subjectObj.full;
+		refresh() {
+			this.result = this.result.map(that => {
+				const processedData = {
+					...that,
+					full: that.full,
+					value: that.value,
+					name: that.name
+				};
+				return processedData;
 			});
 		},
 
@@ -927,7 +1025,7 @@ const app = new Vue({
 					this.result = this.exams[this.current.exam].marks;
 					break;
 			}
-			this.refresh(this.result);
+			this.refresh();
 		},
 		createExam() {
 			this.confirm(
@@ -1089,12 +1187,16 @@ const app = new Vue({
 		},
 		varian(arr, avg) {
 			let sum = 0;
+			let min = Infinity;
+			let max = -Infinity;
 			avg = Number(avg);
 			arr.map(n => {
 				n = Number(n.mark);
 				sum += Math.pow(Math.abs(n - avg), 2);
+				if (n > max) max = n;
+				if (n < min) min = n;
 			});
-			return sum.toFixed(1);
+			return { va: sum.toFixed(1), max: max, min: min };
 		}
 	},
 	watch: {

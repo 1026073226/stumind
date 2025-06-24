@@ -483,3 +483,8 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
   width: 20px;
   text-align: right;
 }
+
+#data-manager-table input{
+  background-color: var(--shadow);
+  color: var(--c);
+}
