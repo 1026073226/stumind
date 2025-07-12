@@ -396,25 +396,85 @@ new Vue({
 							let v = cell.getValue();
 							return app.subjects[v].name;
 						},
-						resizable: false,
-						headerFilter: "list",
-						headerFilterParams: {
-							values: Object.keys(app.subjects).map(key => ({
-								label: app.subjects[key].name,
-								value: key
-							}))
+						headerFilter: function(cell, onRendered, success, cancel, editorParams) {
+							let container = document.createElement("div");
+							container.className = "dropdown";
+							
+							let button = document.createElement("button");
+							button.className = "btn btn-secondary dropdown-toggle";
+							button.setAttribute("type", "button");
+							button.setAttribute("data-bs-toggle", "dropdown");
+							button.setAttribute("aria-expanded", "false");
+							button.textContent = "选择学科";
+							button.style.backgroundColor = "var(--bg1)";
+							button.style.border = "1px solid var(--bg2)";
+							button.style.width = "100%";
+							button.style.fontSize = "14px";
+							button.style.padding = "4px 8px";
+							
+							let menu = document.createElement("ul");
+							menu.className = "dropdown-menu";
+							menu.style.minWidth = "100%";
+							
+							// 添加"全部"选项
+							let allItem = document.createElement("li");
+							let allLink = document.createElement("a");
+							allLink.className = "dropdown-item";
+							allLink.href = "#";
+							allLink.textContent = "全部";
+							allLink.addEventListener("click", (e) => {
+								e.preventDefault();
+								button.textContent = "选择学科";
+								success("");
+							});
+							allItem.appendChild(allLink);
+							menu.appendChild(allItem);
+							
+							Object.keys(app.subjects).forEach(key => {
+								let item = document.createElement("li");
+								let link = document.createElement("a");
+								link.className = "dropdown-item";
+								link.href = "#";
+								link.textContent = app.subjects[key].name;
+								link.addEventListener("click", (e) => {
+									e.preventDefault();
+									button.textContent = app.subjects[key].name;
+									success(key);
+								});
+								item.appendChild(link);
+								menu.appendChild(item);
+							});
+							
+							container.appendChild(button);
+							container.appendChild(menu);
+							return container;
 						}
 					},
 					{                        
 						title: "分数",
 						field: "mark",
 						resizable: false,
-						headerFilter: "input",
+						headerFilter: function(cell, onRendered, success, cancel, editorParams) {
+							let input = document.createElement("input");
+							input.className = "form-control form-control-sm";
+							input.setAttribute("type", "number");
+							input.setAttribute("placeholder", "输入具体分数...");
+							input.style.padding = "4px 8px";
+							input.style.fontSize = "14px";
+							input.style.backgroundColor = "var(--bg1)";
+							input.style.border = "1px solid var(--bg2)";
+							input.style.color = "var(--c)";
+							
+							input.addEventListener("input", (e) => {
+								success(e.target.value ? Number(e.target.value) : "");
+							});
+							
+							return input;
+						},
 						headerFilterFunc: (filterVal, rowVal) => {
 							if (!filterVal) return true;
 							return rowVal === Number(filterVal);
 						},
-						headerFilterPlaceholder: "输入具体分数...",
 						editor: "number",
 						editorParams: {
 							min: 0,
@@ -442,12 +502,27 @@ new Vue({
 						title: "信息",
 						field: "info",
 						resizable: false,
-						headerFilter: "input",
+						headerFilter: function(cell, onRendered, success, cancel, editorParams) {
+							let input = document.createElement("input");
+							input.className = "form-control form-control-sm";
+							input.setAttribute("type", "text");
+							input.setAttribute("placeholder", "搜索信息...");
+							input.style.padding = "4px 8px";
+							input.style.fontSize = "14px";
+							input.style.backgroundColor = "var(--bg1)";
+							input.style.border = "1px solid var(--bg2)";
+							input.style.color = "var(--c)";
+							
+							input.addEventListener("input", (e) => {
+								success(e.target.value);
+							});
+							
+							return input;
+						},
 						headerFilterFunc: (filterVal, rowVal) => {
 							if (!filterVal) return true;
 							return rowVal && rowVal.toLowerCase().includes(filterVal.toLowerCase());
 						},
-						headerFilterPlaceholder: "搜索信息...",
 						editor: "input",
 						validator: ["required"],
 						cellEdited: function(cell){
@@ -468,13 +543,27 @@ new Vue({
 							return app.dateFormatter(date);
 						},
 						resizable: false,
-						headerFilter: "input",
+						headerFilter: function(cell, onRendered, success, cancel, editorParams) {
+							let input = document.createElement("input");
+							input.className = "form-control form-control-sm";
+							input.setAttribute("type", "date");
+							input.style.padding = "4px 8px";
+							input.style.fontSize = "14px";
+							input.style.backgroundColor = "var(--bg1)";
+							input.style.border = "1px solid var(--bg2)";
+							input.style.color = "var(--c)";
+							
+							input.addEventListener("input", (e) => {
+								success(e.target.value);
+							});
+							
+							return input;
+						},
 						headerFilterFunc: (filterVal, rowVal) => {
 							if (!filterVal) return true;
 							const date = app.dateFormatter(new Date(rowVal));
 							return date.includes(filterVal);
 						},
-						headerFilterPlaceholder: "YYYY-MM-DD",
 						editor: "date",
 						editorParams: {
 							max: app.dateFormatter(new Date())
@@ -518,7 +607,9 @@ new Vue({
 					}
 				},
 				headerFilterDropdownElement: "div", // 使用div作为下拉容器
-                popupContainer: true // 允许弹出层在表格容器外部显示
+                movableRows: false,
+                height: "calc(100vh - 20px)", // 设置表格高度，留出一些边距
+                
 			});
 		},
 		doCheck() {
