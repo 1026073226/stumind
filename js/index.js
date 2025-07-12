@@ -265,7 +265,8 @@ new Vue({
 		pages: {
 			datas: false,
 			pusher: true,
-			me: false
+			me: false,
+			dm: false,
 		},
 		subjects: {
 			ch: {
@@ -381,21 +382,13 @@ new Vue({
 				}
 			});
 			return n;
-		}
+		},
 	},
 	methods: {
 		initTable() {
 			this.dataManager = new Tabulator("#data-manager-table", {
 				data: this.marks,
 				columns: [
-					{
-						title: "年级",
-						field: "grade",
-						formatter(cell) {
-							return GET_GRADE_NAME(cell.getValue());
-						},
-						resizable: false
-					},
 					{
 						title: "学科",
 						field: "subject",
@@ -404,29 +397,67 @@ new Vue({
 							return app.subjects[v].name;
 						},
 						resizable: false,
-						headerFilter: "input",
-						headerFilterFunc: function (
-							filterValue,
-							rowValue,
-							rowData,
-							cell
-						) {
-							const formattedValue = cell.getFormattedValue();
-							return formattedValue
-								.toLowerCase()
-								.includes(filterValue.toLowerCase());
+						headerFilter: "list",
+						headerFilterParams: {
+							values: Object.keys(app.subjects).map(key => ({
+								label: app.subjects[key].name,
+								value: key
+							}))
 						}
 					},
-					{
+					{                        
 						title: "分数",
 						field: "mark",
 						resizable: false,
-						headerFilter: "number"
+						headerFilter: "input",
+						headerFilterFunc: (filterVal, rowVal) => {
+							if (!filterVal) return true;
+							return rowVal === Number(filterVal);
+						},
+						headerFilterPlaceholder: "输入具体分数...",
+						editor: "number",
+						editorParams: {
+							min: 0,
+							max: function(cell){
+								let subject = cell.getRow().getData().subject;
+								return app.subjects[subject].full;
+							}
+						},
+						validator: ["required", "numeric", function(cell, value){
+							let subject = cell.getRow().getData().subject;
+							let max = app.subjects[subject].full;
+							return value <= max && value >= 0;
+						}],
+						cellEdited: function(cell){
+							// 更新原始数据
+							let data = cell.getRow().getData();
+							let subject = app.subjects[data.subject];
+							let mark = subject.marks.find(m => m.date === data.date);
+							if(mark) {
+								mark.mark = cell.getValue();
+							}
+						}
 					},
 					{
 						title: "信息",
 						field: "info",
-						resizable: false
+						resizable: false,
+						headerFilter: "input",
+						headerFilterFunc: (filterVal, rowVal) => {
+							if (!filterVal) return true;
+							return rowVal && rowVal.toLowerCase().includes(filterVal.toLowerCase());
+						},
+						headerFilterPlaceholder: "搜索信息...",
+						editor: "input",
+						validator: ["required"],
+						cellEdited: function(cell){
+							let data = cell.getRow().getData();
+							let subject = app.subjects[data.subject];
+							let mark = subject.marks.find(m => m.date === data.date);
+							if(mark) {
+								mark.info = cell.getValue();
+							}
+						}
 					},
 					{
 						title: "日期",
@@ -436,9 +467,58 @@ new Vue({
 							const date = new Date(v);
 							return app.dateFormatter(date);
 						},
-						resizable: false
+						resizable: false,
+						headerFilter: "input",
+						headerFilterFunc: (filterVal, rowVal) => {
+							if (!filterVal) return true;
+							const date = app.dateFormatter(new Date(rowVal));
+							return date.includes(filterVal);
+						},
+						headerFilterPlaceholder: "YYYY-MM-DD",
+						editor: "date",
+						editorParams: {
+							max: app.dateFormatter(new Date())
+						},
+						cellEdited: function(cell){
+							let data = cell.getRow().getData();
+							let subject = app.subjects[data.subject];
+							let mark = subject.marks.find(m => m.date === data.oldDate);
+							if(mark) {
+								mark.date = new Date(cell.getValue()).getTime();
+							}
+						}
 					}
-				]
+				],
+				pagination: true, // 启用分页
+				paginationSize: 10, // 每页显示10条
+				paginationSizeSelector: [5, 10, 20, 50], // 可选的每页条数
+				layout: "fitColumns", // 自动调整列宽
+				placeholder: "暂无数据", // 无数据时显示的文本
+				locale: true, // 启用本地化
+				langs: {
+					"default": { //定义默认语言包
+						"pagination": {
+							"first": "首页",
+							"first_title": "第一页",
+							"last": "末页",
+							"last_title": "最后一页",
+							"prev": "上一页",
+							"prev_title": "上一页",
+							"next": "下一页",
+							"next_title": "下一页",
+							"all": "所有",
+							"page_size": "每页显示",
+							"counter": {
+								"showing": "显示",
+								"of": "共",
+								"rows": "条记录",
+								"pages": "页"
+							}
+						}
+					}
+				},
+				headerFilterDropdownElement: "div", // 使用div作为下拉容器
+                popupContainer: true // 允许弹出层在表格容器外部显示
 			});
 		},
 		doCheck() {

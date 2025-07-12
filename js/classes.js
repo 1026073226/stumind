@@ -137,7 +137,8 @@ warn = "2px solid #F79";
 window.icons = {
 	datas: "◔",
 	pusher: "☼",
-	me: "⊹"
+	me: "⊹",
+	dm: "▤"
 };
 
 window.grades = [

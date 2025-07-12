@@ -123,7 +123,7 @@
 					</div>
 				</div>
 				<div id="data-manager">
-				  <div id="data-manager-table"></div>
+				  <div id="data-manager-table" :style="styleComputer(pages.dm)" class=""></div>
 				</div>
 			</div>
 			<div id="bottomline">
@@ -135,7 +135,7 @@
 			<div id="loadPage" :style="styleComputer(!loaded)">
 				<button id="enter-button" class="fully"
 					:style="'filter: brightness(' + ((time.load / 10 || 0) + 1) + ') blur(' + (time.load || 0) + 'px);'"
-					@touchstart="startLoad">进入</button>
+					@touchstart="startLoad" @click="startLoad">进入</button>
 			</div>
 		</div>
 		<script src="js/index.js"></script>
