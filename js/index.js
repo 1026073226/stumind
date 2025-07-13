@@ -362,8 +362,8 @@ new Vue({
 		window.addEventListener(
 			"load",
 			() => {
+			  this.initTable();
 				this.initAnima();
-				this.initTable();
 				this.loadChart();
 			},
 			{
@@ -399,7 +399,7 @@ new Vue({
 						headerFilter: function(cell, onRendered, success, cancel, editorParams) {
 							let container = document.createElement("div");
 							container.className = "dropdown";
-							
+							container.style.zIndex = 999;
 							let button = document.createElement("button");
 							button.className = "btn btn-secondary dropdown-toggle";
 							button.setAttribute("type", "button");
@@ -578,12 +578,12 @@ new Vue({
 						}
 					}
 				],
-				pagination: true, // 启用分页
-				paginationSize: 10, // 每页显示10条
-				paginationSizeSelector: [5, 10, 20, 50], // 可选的每页条数
-				layout: "fitColumns", // 自动调整列宽
-				placeholder: "暂无数据", // 无数据时显示的文本
-				locale: true, // 启用本地化
+				pagination: true,
+				paginationSize: 10,
+				paginationSizeSelector: [5, 10, 20, 50],
+				layout: "fitColumns",
+				placeholder: "暂无数据",
+				locale: true,
 				langs: {
 					"default": { //定义默认语言包
 						"pagination": {
@@ -606,9 +606,9 @@ new Vue({
 						}
 					}
 				},
-				headerFilterDropdownElement: "div", // 使用div作为下拉容器
-                movableRows: false,
-                height: "calc(100vh - 20px)", // 设置表格高度，留出一些边距
+				headerFilterDropdownElement: "div",
+        movableRows: false,
+        height: "95vh",
                 
 			});
 		},

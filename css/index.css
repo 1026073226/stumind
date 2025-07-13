@@ -484,29 +484,15 @@ input:not(input[type="checkbox"]):not(input[type="range"]):focus {
   text-align: right;
 }
 
-#data-manager-table input{
-  background-color: var(--bg1);
-  color: var(--c);
-  border: 1px solid var(--bg2);
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 2px;
-  font-size: 14px;
-  width: calc(100% - 16px);
-  transition: all 0.3s ease;
-}
-
 #data-manager-table input:focus{
-  background-color: var(--bg2);
-  border-color: var(--c);
-  box-shadow: 0 0 5px var(--shadow);
-  outline: none;
+  color: var(--shadow);
 }
 
 /* 表头样式优化 */
 #data-manager-table .tabulator-header{
   background-color: var(--bg1);
   border-bottom: 2px solid var(--bg2);
+  color: var(--c);
 }
 
 #data-manager-table .tabulator-header .tabulator-col{
